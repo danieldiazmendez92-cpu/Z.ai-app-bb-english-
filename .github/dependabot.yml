@@ -1,0 +1,106 @@
+# Configuración de Dependabot para StoryEnglish Kids
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # ─── Flutter / Dart (pubspec.yaml) ───────────────────────────────────────
+  # Revisión mensual. Agrupamos todas las actualizaciones de pubspec en un solo
+  # PR para no inundar el board.
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    groups:
+      flutter-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Los majors van en PRs separados para revisión manual.
+    # Excluimos paquetes que requieren migración cuidadosa.
+    ignore:
+      - dependency-name: "firebase_core"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "firebase_auth"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "cloud_firestore"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "flutter_riverpod"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(pub)"
+      include: "scope"
+    labels:
+      - "chore"
+      - "dependencies"
+      - "infra"
+    reviewers:
+      - "danieldiazmendez92-cpu"
+
+  # ─── Cloud Functions (package.json) ──────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/firebase/functions"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "10:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # firebase-functions v7+ rompe API v2; requiere migración manual.
+      - dependency-name: "firebase-functions"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "firebase-admin"
+        update-types: ["version-update:semver-major"]
+      # googleapis cambia mucho entre majors; revisión caso por caso.
+      - dependency-name: "googleapis"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
+      include: "scope"
+    labels:
+      - "chore"
+      - "dependencies"
+      - "firebase"
+    reviewers:
+      - "danieldiazmendez92-cpu"
+
+  # ─── GitHub Actions ──────────────────────────────────────────────────────
+  # Revisión semanal (los updates de actions son más frecuentes y más seguros).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "ci(actions)"
+      include: "scope"
+    labels:
+      - "chore"
+      - "dependencies"
+      - "infra"
+    reviewers:
+      - "danieldiazmendez92-cpu"
