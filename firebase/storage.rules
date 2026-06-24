@@ -1,0 +1,101 @@
+rules_version = '2';
+
+// =============================================================================
+// StoryEnglish Kids - Cloud Storage Security Rules
+//
+// Reglas alineadas con `docs/05-security-and-privacy.md` seccion 4.
+// =============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ============== HELPERS ==============
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isPremium() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.is_premium == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // ============== PORTADAS E ILUSTRACIONES DE CUENTOS ==============
+    // Publico ( covered by App Check ). Solo admin escribe.
+
+    match /stories/{storyId}/cover.jpg {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /stories/{storyId}/cover.png {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /stories/{storyId}/scene_{n}.jpg {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /stories/{storyId}/scene_{n}.png {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ============== AUDIO EN INGLES: GRATIS ==============
+    match /stories/{storyId}/audio_en.mp3 {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ============== AUDIO EN ESPANOL: PREMIUM ==============
+    match /stories/{storyId}/audio_es.mp3 {
+      allow read: if isPremium();
+      allow write: if isAdmin();
+    }
+
+    // ============== TIMESTAMPS: GRATIS ==============
+    match /stories/{storyId}/timestamps_en.json {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /stories/{storyId}/timestamps_es.json {
+      allow read: if isPremium();
+      allow write: if isAdmin();
+    }
+
+    // ============== AVATARES DE NINOS ==============
+    // Solo el padre dueño del nino puede leer y escribir.
+    match /users/{uid}/children/{childId}/avatar.png {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/children/{childId}/avatar.jpg {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ============== ICONOS DE LOGROS: PUBLICO ==============
+    match /achievements/{achievementId}/icon.png {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId}/icon.svg {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ============== DEFAULT: DENY ==============
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

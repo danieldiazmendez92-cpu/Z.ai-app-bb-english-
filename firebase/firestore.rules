@@ -1,0 +1,198 @@
+rules_version = '2';
+
+// =============================================================================
+// StoryEnglish Kids - Firestore Security Rules
+//
+// Reglas alineadas con `docs/05-security-and-privacy.md` seccion 3.
+// Roles:
+//   - Anonimo: lee cuentos publicados.
+//   - Padre autenticado: puede crear cuenta.
+//   - Padre verificado: puede crear/editar perfiles de nino, progreso, etc.
+//   - Padre Premium: acceso a audio ES ( en storage.rules ).
+//   - Admin ( custom claim ): CRUD sobre stories, categories, achievements.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============== HELPERS ==============
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isParentalVerified() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.parental_verified_at != null;
+    }
+
+    function isPremium() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_premium == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwnerOfChild(childId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/children_profiles/$(childId))
+        && get(/databases/$(database)/documents/children_profiles/$(childId)).data.user_uid == request.auth.uid;
+    }
+
+    function countParentalChildren() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.children_count;
+    }
+
+    // ============== USERS ==============
+    // El propio usuario puede leer y crear su doc.
+    // is_premium y parental_verified_at solo los setea server-side ( Cloud Functions ).
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid)
+                    && request.resource.data.uid == uid
+                    && request.resource.data.email is string
+                    && request.resource.data.parental_verified_at == null
+                    && !(request.resource.data.is_premium == true);
+      allow update: if (isOwner(uid)
+                    && !('is_premium' in request.resource.data.diff(resource.data).affectedKeys())
+                    && !('parental_verified_at' in request.resource.data.diff(resource.data).affectedKeys())
+                    && !('children_count' in request.resource.data.diff(resource.data).affectedKeys()))
+                    || isAdmin();
+      // is_premium, parental_verified_at y children_count solo los setea server-side
+      allow delete: if isAdmin();
+    }
+
+    // ============== CHILDREN PROFILES ==============
+    // Solo el padre dueño. Max 4 perfiles ( validated server-side too ).
+    match /children_profiles/{childId} {
+      allow read: if isOwnerOfChild(childId) || isAdmin();
+      allow create: if isParentalVerified()
+                    && request.resource.data.user_uid == request.auth.uid
+                    && (countParentalChildren() == null || countParentalChildren() < 4)
+                    && request.resource.data.age >= 2
+                    && request.resource.data.age <= 7
+                    && request.resource.data.name.size() >= 1
+                    && request.resource.data.name.size() <= 20
+                    && request.resource.data.deleted_at == null;
+      allow update: if isOwnerOfChild(childId)
+                    && !('user_uid' in request.resource.data.diff(resource.data).affectedKeys());
+      // Delete logico: solo setea deleted_at. Fisico: solo Cloud Function.
+      allow delete: if false;
+    }
+
+    // ============== PARENTAL SETTINGS ==============
+    match /parental_settings/{uid} {
+      allow read: if isOwner(uid);
+      // El padre puede editar todos los campos excepto allow_personalized_ads
+      // ( siempre false, inmutable por COPPA ).
+      allow create: if isOwner(uid)
+                    && request.resource.data.allow_personalized_ads == false;
+      allow update: if isOwner(uid)
+                    && request.resource.data.allow_personalized_ads == false;
+      allow delete: if isOwner(uid);
+    }
+
+    // ============== SUBSCRIPTIONS ==============
+    // Solo Cloud Functions escriben. El usuario puede leer las suyas.
+    match /subscriptions/{subId} {
+      allow read: if isSignedIn()
+                  && resource.data.user_uid == request.auth.uid;
+      allow write: if false;  // Solo Cloud Functions
+    }
+
+    // ============== STORIES ( catalogo ) ==============
+    match /stories/{storyId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+
+      match /story_sections/{sectionId} {
+        allow read: if get(/databases/$(database)/documents/stories/$(storyId)).data.published == true || isAdmin();
+        allow write: if isAdmin();
+      }
+
+      match /vocabulary/{wordId} {
+        allow read: if get(/databases/$(database)/documents/stories/$(storyId)).data.published == true || isAdmin();
+        allow write: if isAdmin();
+      }
+
+      match /comprehension_questions/{qId} {
+        allow read: if get(/databases/$(database)/documents/stories/$(storyId)).data.published == true || isAdmin();
+        allow write: if isAdmin();
+      }
+    }
+
+    // ============== CATEGORIES, ACHIEVEMENTS ==============
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /achievements/{achievementId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ============== USER PROGRESS ==============
+    // El padre del nino puede leer y crear. No puede borrar.
+    match /user_progress/{progressId} {
+      allow read: if isSignedIn()
+                  && isOwnerOfChild(resource.data.child_id);
+      allow create: if isSignedIn()
+                    && isOwnerOfChild(request.resource.data.child_id)
+                    && request.resource.data.completed == false;
+      allow update: if isSignedIn()
+                    && isOwnerOfChild(resource.data.child_id)
+                    && !('child_id' in request.resource.data.diff(resource.data).affectedKeys());
+      allow delete: if false;
+    }
+
+    // ============== USER ACHIEVEMENTS ==============
+    // Solo Cloud Functions ( achievement_engine ) escriben.
+    match /user_achievements/{uaId} {
+      allow read: if isSignedIn()
+                  && isOwnerOfChild(resource.data.child_id);
+      allow write: if false;
+    }
+
+    // ============== READING SESSIONS ==============
+    // Inmutables una vez creadas.
+    match /reading_sessions/{sessionId} {
+      allow read: if isSignedIn()
+                  && isOwnerOfChild(resource.data.child_id);
+      allow create: if isSignedIn()
+                    && isOwnerOfChild(request.resource.data.child_id);
+      allow update, delete: if false;
+    }
+
+    // ============== ANALYTICS EVENTS ==============
+    // Cualquiera autenticado puede crear ( con rate limiting en Cloud Function ).
+    // Solo admin lee.
+    match /analytics_events/{eventId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn()
+                    && request.resource.data.user_uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ============== AUDIT LOG ==============
+    // Solo Cloud Functions escriben. Solo admin lee.
+    match /audit_log/{eventId} {
+      allow read: if isAdmin();
+      allow write: if false;  // Solo Cloud Functions via Admin SDK
+    }
+
+    // ============== RATE LIMIT ==============
+    // Solo Cloud Functions leen y escriben.
+    match /rate_limit/{entryId} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "children_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uid", "order": "ASCENDING" },
+        { "fieldPath": "deleted_at", "order": "ASCENDING" },
+        { "fieldPath": "last_active_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uid", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "expires_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "published", "order": "ASCENDING" },
+        { "fieldPath": "min_age", "order": "ASCENDING" },
+        { "fieldPath": "category_id", "order": "ASCENDING" },
+        { "fieldPath": "view_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "published", "order": "ASCENDING" },
+        { "fieldPath": "tags", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "user_progress",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "child_id", "order": "ASCENDING" },
+        { "fieldPath": "last_read_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "user_progress",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "child_id", "order": "ASCENDING" },
+        { "fieldPath": "completed", "order": "ASCENDING" },
+        { "fieldPath": "completed_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "user_progress",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "child_id", "order": "ASCENDING" },
+        { "fieldPath": "story_id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "user_achievements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "child_id", "order": "ASCENDING" },
+        { "fieldPath": "unlocked_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reading_sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "child_id", "order": "ASCENDING" },
+        { "fieldPath": "started_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "analytics_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uid", "order": "ASCENDING" },
+        { "fieldPath": "occurred_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "audit_log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "actor_uid", "order": "ASCENDING" },
+        { "fieldPath": "occurred_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "last_receipt_id", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

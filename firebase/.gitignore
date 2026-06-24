@@ -1,0 +1,17 @@
+# Firebase Functions
+firebase/functions/node_modules/
+firebase/functions/lib/
+firebase/functions/.env
+firebase/functions/.env.local
+firebase/functions/firebase-debug.log
+firebase/functions/firebase-debug.*.log
+firebase/functions/ui-debug.log
+firebase/functions/*.local
+
+# Firebase config caches
+firebase/.firebase/
+firebase/.firebaserc
+
+# Logs
+firebase/functions/logs/
+*.log
