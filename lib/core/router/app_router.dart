@@ -31,6 +31,7 @@ import '../../features/onboarding/presentation/screens/pick_age_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_avatar_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_interests_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
+import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/story/presentation/screens/reader_screen.dart';
 import '../../features/story/presentation/screens/story_detail_screen.dart';
 import '../../features/story/presentation/screens/story_end_screen.dart';
@@ -249,8 +250,7 @@ final List<RouteBase> _routes = [
           GoRoute(
             path: AppRoutes.progress,
             name: AppRoutes.progressName,
-            builder: (context, state) =>
-                _placeholderScreen('Progress'), // TODO(P2.Sprint 2.1): ProgressScreen
+            builder: (context, state) => const ProgressScreen(),
           ),
         ],
       ),
