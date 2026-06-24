@@ -1,0 +1,89 @@
+name: Deploy Dev
+
+# CD a Firebase DEV project. Se ejecuta en cada push a `develop` (después de que CI pasa).
+# Deploya: Cloud Functions + Firestore rules + Storage rules + Firestore indexes.
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch: # permite disparo manual desde la UI de Actions
+
+concurrency:
+  group: cd-dev-${{ github.ref }}
+  cancel-in-progress: false # no cancelar deploys en curso para no dejar firebase a mitad
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Firebase DEV
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://console.firebase.google.com/project/${{ vars.FIREBASE_PROJECT_ID_DEV || 'storyenglish-kids-dev' }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: firebase
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@13
+
+      - name: Install Cloud Functions dependencies
+        run: |
+          cd functions
+          npm ci
+
+      - name: Build Cloud Functions (TypeScript -> JS)
+        run: |
+          cd functions
+          npm run build
+
+      - name: Verify Firebase CLI auth
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
+        run: |
+          firebase projects:list --token "$FIREBASE_TOKEN" | head -n 20
+
+      - name: Deploy Firestore rules + indexes
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
+        run: |
+          firebase deploy --only firestore:rules,firestore:indexes \
+            --project "${{ vars.FIREBASE_PROJECT_ID_DEV || 'storyenglish-kids-dev' }}" \
+            --non-interactive --token "$FIREBASE_TOKEN"
+
+      - name: Deploy Storage rules
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
+        run: |
+          firebase deploy --only storage \
+            --project "${{ vars.FIREBASE_PROJECT_ID_DEV || 'storyenglish-kids-dev' }}" \
+            --non-interactive --token "$FIREBASE_TOKEN"
+
+      - name: Deploy Cloud Functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
+        run: |
+          firebase deploy --only functions \
+            --project "${{ vars.FIREBASE_PROJECT_ID_DEV || 'storyenglish-kids-dev' }}" \
+            --non-interactive --token "$FIREBASE_TOKEN" \
+            --force
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Deploy Dev status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Project: \`${{ vars.FIREBASE_PROJECT_ID_DEV || 'storyenglish-kids-dev' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
