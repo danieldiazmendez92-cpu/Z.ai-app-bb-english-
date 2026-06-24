@@ -1,0 +1,39 @@
+{
+  "name": "storyenglish-kids-functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions para Firebase - StoryEnglish Kids (P0-C)",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions,firestore,storage",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.5.0",
+    "@google/generative-ai": "^0.21.0",
+    "apple-signin-auth": "^1.7.0",
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.0.1",
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "@types/node": "^20.16.10",
+    "firebase-tools": "^13.20.2",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "private": true
+}
