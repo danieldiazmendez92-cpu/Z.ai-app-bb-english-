@@ -1,0 +1,116 @@
+# Configuración de actions/labeler@v5
+# Mapeo de paths de archivos cambiados -> labels aplicados al PR.
+# Sintaxis: un label por clave, y como valor una lista de globs (o un dict con `changed-files`).
+# Docs: https://github.com/actions/labeler#using-the-configuration-file
+
+# ─── Features (lib/features/*) ────────────────────────────────────────────────
+feature/auth:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/auth/**'
+          - 'test/features/auth/**'
+
+feature/onboarding:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/onboarding/**'
+          - 'test/features/onboarding/**'
+
+feature/home:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/home/**'
+          - 'test/features/home/**'
+
+feature/library:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/library/**'
+          - 'test/features/library/**'
+
+feature/story:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/story/**'
+          - 'test/features/story/**'
+
+feature/progress:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/progress/**'
+          - 'test/features/progress/**'
+
+feature/parent:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/parent/**'
+          - 'test/features/parent/**'
+
+feature/subscription:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/subscription/**'
+          - 'test/features/subscription/**'
+
+feature/child-profile:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/features/child_profile/**'
+          - 'test/features/child_profile/**'
+
+# ─── Cross-cutting ────────────────────────────────────────────────────────────
+infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/core/**'
+          - 'lib/shared/**'
+          - 'lib/main.dart'
+          - 'lib/main_dev.dart'
+          - 'lib/main_prod.dart'
+          - 'pubspec.yaml'
+          - 'pubspec.lock'
+          - 'analysis_options.yaml'
+          - '.github/workflows/**'
+          - '.github/dependabot.yml'
+          - 'android/**'
+          - 'ios/**'
+
+firebase:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'firebase/**'
+          - 'firebase/functions/**'
+
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'test/**'
+          - 'integration_test/**'
+          - 'firebase/functions/test/**'
+
+compliance:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'firebase/firestore.rules'
+          - 'firebase/storage.rules'
+          - 'docs/05-security-and-privacy.md'
+          - 'docs/10-accessibility.md'
+          - 'docs/11-coppa-gdpr-k.md'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - '.github/ISSUE_TEMPLATE/**'
+          - '.github/pull_request_template.md'
+
+chore:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.gitignore'
+          - '.editorconfig'
+          - 'scripts/**'
+          - 'assets/**'
+          - 'LICENSE'
+          - 'CODE_OF_CONDUCT.md'
