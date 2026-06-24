@@ -1,0 +1,73 @@
+# Reglas de analisis estatico para StoryEnglish Kids
+# Basado en flutter_lints 4.0 + reglas adicionales para type safety y clean arch
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - '**/*.g.dart'           # codigo generado por json_serializable / riverpod_generator
+    - '**/*.freezed.dart'     # codigo generado por freezed
+    - 'lib/generated/**'      # bindings generados
+  language:
+    strict-casts: true        # prohibir implicit casts peligrosos
+    strict-raw-types: true    # obligar tipos genericos
+  errors:
+    # Treat como error cosas criticas
+    avoid_print: error
+    avoid_dynamic_calls: error
+    missing_required_param: error
+    missing_return: error
+    must_be_immutable: error
+    prefer_const_constructors: warning
+    prefer_const_constructors_in_immutables: warning
+    prefer_const_declarations: warning
+    prefer_final_locals: warning
+    public_member_api_docs: off   # documentacion es opcional por ahora
+    sort_constructors_first: warning
+    unawaited_futures: warning
+    use_key_in_widget_constructors: warning
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+linter:
+  rules:
+    # Evitar dynamic (type safety estricto)
+    avoid_dynamic_calls: true
+    avoid_returning_null_for_void: true
+    avoid_unused_constructor_parameters: true
+    avoid_void_async: true
+
+    # Style
+    always_declare_return_types: true
+    cascade_invocations: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    prefer_single_quotes: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    type_annotate_public_apis: true
+    unawaited_futures: true
+    unnecessary_const: true
+    unnecessary_new: true
+    use_enums: true
+    use_key_in_widget_constructors: true
+    use_named_constants: true
+    use_super_parameters: true
+
+    # Imports (clean architecture)
+    always_use_package_imports: false
+    prefer_relative_imports: true
+    directives_ordering: true
+
+    # Flutter especificas
+    use_full_hex_values_for_flutter_colors: true
+    avoid_print: true
+    prefer_const_constructors_in_immutables: true
+
+    # Null safety
+    null_check_on_nullable_type_parameter: true
+    prefer_null_aware_method_calls: true
+    prefer_null_aware_operators: true

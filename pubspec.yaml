@@ -1,0 +1,121 @@
+name: storyenglish_kids
+description: "StoryEnglish Kids - App movil de cuentos narrados en ingles para ninos de 2-7 anos. Aprende ingles escuchando y leyendo cuentos clasicos con audio sincronizado."
+publish_to: 'none' # No publicar en pub.dev (app privada)
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+# ---------------------------------------------------------------------------
+# Dependencias - listadas en docs/02-folder-structure.md seccion 4
+# ---------------------------------------------------------------------------
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Firebase
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.4
+  cloud_functions: ^5.1.0
+  firebase_analytics: ^11.3.3
+  firebase_crashlytics: ^4.1.3
+  firebase_app_check: ^0.3.1+7
+  firebase_remote_config: ^5.1.3
+
+  # Routing
+  go_router: ^14.2.7
+
+  # Audio
+  just_audio: ^0.5.37        # Reproductor de audio principal
+  audio_service: ^0.18.15    # Soporte background audio
+
+  # Local storage / cache
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_cache_manager: ^3.4.1
+
+  # Billing
+  in_app_purchase: ^3.2.0    # Multiplataforma (Play + App Store)
+
+  # Networking
+  dio: ^5.7.0
+
+  # Localization
+  intl: ^0.19.0
+  flutter_localizations:
+    sdk: flutter
+
+  # UI
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
+  lottie: ^3.1.2
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+
+  # Utils
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  uuid: ^4.5.1
+  logger: ^2.4.0
+  connectivity_plus: ^6.0.5
+
+# ---------------------------------------------------------------------------
+# Dev dependencies - codegen, lints, testing
+# ---------------------------------------------------------------------------
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.3
+  custom_lint: ^0.6.4
+  riverpod_lint: ^2.3.13
+  mocktail: ^1.0.4
+  firebase_auth_mocks: ^0.14.0
+  fake_cloud_firestore: ^3.0.3
+  firebase_storage_mocks: ^0.7.0
+
+# ---------------------------------------------------------------------------
+# Flutter configuration
+# ---------------------------------------------------------------------------
+flutter:
+  uses-material-design: true
+
+  # Assets estaticos de la app
+  assets:
+    - assets/images/logos/
+    - assets/images/avatars/
+    - assets/images/achievements/
+    - assets/images/onboarding/
+    - assets/icons/
+    - assets/animations/
+    - assets/l10n/
+
+  # Fuentes - Fredoka (principal ludica) y OpenDyslexic (accesible opcional)
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka/Fredoka-Regular.ttf
+        - asset: assets/fonts/Fredoka/Fredoka-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Fredoka/Fredoka-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Fredoka/Fredoka-Bold.ttf
+          weight: 700
+    - family: OpenDyslexic
+      fonts:
+        - asset: assets/fonts/OpenDyslexic/OpenDyslexic-Regular.ttf
+        - asset: assets/fonts/OpenDyslexic/OpenDyslexic-Bold.ttf
+          weight: 700
