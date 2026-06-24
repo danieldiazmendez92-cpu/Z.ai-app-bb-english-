@@ -25,6 +25,7 @@ try {
 export { storyIngest } from "./story_ingest";
 export { verifyParental } from "./verify_parental";
 export { validatePlayReceipt, validateAppStoreReceipt } from "./billing_validation";
+export { exportUserData } from "./export_user_data";
 
 // =============================================================================
 // FIRESTORE TRIGGERS

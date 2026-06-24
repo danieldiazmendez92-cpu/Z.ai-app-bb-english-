@@ -102,6 +102,10 @@ class AppRoutes {
   // ---- Parental controls ----
   static const String parentalControls = '/parental-controls';
   static const String parentalControlsName = 'parental-controls';
+
+  // ---- Privacy ----
+  static const String privacySettings = '/privacy-settings';
+  static const String privacySettingsName = 'privacy-settings';
 }
 
 /// Alias para uso más corto en las pantallas: `Routes.login` en lugar de

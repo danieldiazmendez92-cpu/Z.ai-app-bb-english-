@@ -33,10 +33,13 @@ import '../../features/onboarding/presentation/screens/pick_interests_screen.dar
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/parent/presentation/screens/parent_dashboard_screen.dart';
 import '../../features/parent/presentation/screens/parental_controls_screen.dart';
+import '../../features/privacy/presentation/screens/privacy_settings_screen.dart';
 import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/story/presentation/screens/reader_screen.dart';
 import '../../features/story/presentation/screens/story_detail_screen.dart';
 import '../../features/story/presentation/screens/story_end_screen.dart';
+import '../../features/subscription/presentation/screens/manage_subscription_screen.dart';
+import '../../features/subscription/presentation/screens/paywall_screen.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/child_profile_provider.dart';
 import '../router/routes.dart';
@@ -295,14 +298,12 @@ final List<RouteBase> _routes = [
   GoRoute(
     path: AppRoutes.subscription,
     name: AppRoutes.subscriptionName,
-    builder: (context, state) =>
-        _placeholderScreen('Manage Subscription'), // TODO(P3): ManageSubscriptionScreen
+    builder: (context, state) => const ManageSubscriptionScreen(),
   ),
   GoRoute(
     path: AppRoutes.paywall,
     name: AppRoutes.paywallName,
-    builder: (context, state) =>
-        _placeholderScreen('Paywall'), // TODO(P3): PaywallScreen
+    builder: (context, state) => const PaywallScreen(),
   ),
   GoRoute(
     path: AppRoutes.childPicker,
@@ -322,6 +323,13 @@ final List<RouteBase> _routes = [
     path: AppRoutes.parentalControls,
     name: AppRoutes.parentalControlsName,
     builder: (context, state) => const ParentalControlsScreen(),
+  ),
+
+  // ---- Privacy ----
+  GoRoute(
+    path: AppRoutes.privacySettings,
+    name: AppRoutes.privacySettingsName,
+    builder: (context, state) => const PrivacySettingsScreen(),
   ),
 
   // ---- Rutas legales (placeholder simple) ----
