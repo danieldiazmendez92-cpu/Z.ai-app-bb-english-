@@ -315,14 +315,15 @@ final readerControllerProvider =
 
   return ReaderController(
     repository: ref.watch(storyRepositoryProvider),
-    audioService: ref.watch(_audioPlayerServiceProvider),
+    audioService: ref.watch(audioPlayerServiceProvider),
     storyId: storyId,
     childId: activeChild?.childId,
   );
 });
 
-/// Provider interno del AudioPlayerService (una instancia por reader).
-final _audioPlayerServiceProvider = Provider<AudioPlayerService>((ref) {
+/// Provider del AudioPlayerService (una instancia por reader).
+/// En demo mode se overridea con DemoAudioPlayerService.
+final audioPlayerServiceProvider = Provider<AudioPlayerService>((ref) {
   final service = AudioPlayerService();
   ref.onDispose(service.dispose);
   return service;
