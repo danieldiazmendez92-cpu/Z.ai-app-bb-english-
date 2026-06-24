@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google-cloud/text-to-speech": "^5.5.0",
+    "@google-cloud/text-to-speech": "^6.4.1",
     "@google/generative-ai": "^0.21.0",
     "apple-signin-auth": "^1.7.0",
     "firebase-admin": "^12.6.0",
