@@ -98,6 +98,10 @@ class AppRoutes {
   // ---- Rutas legales (placeholders hasta implementar) ----
   static const String terms = '/terms';
   static const String privacy = '/privacy';
+
+  // ---- Parental controls ----
+  static const String parentalControls = '/parental-controls';
+  static const String parentalControlsName = 'parental-controls';
 }
 
 /// Alias para uso más corto en las pantallas: `Routes.login` en lugar de

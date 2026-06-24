@@ -43,10 +43,13 @@ class StoryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Portada
+            // Portada con Hero animation a StoryDetailScreen
             Expanded(
               flex: 3,
-              child: _buildCover(context),
+              child: Hero(
+                tag: 'story-cover-${story.storyId}',
+                child: _buildCover(context),
+              ),
             ),
             // Info
             Expanded(

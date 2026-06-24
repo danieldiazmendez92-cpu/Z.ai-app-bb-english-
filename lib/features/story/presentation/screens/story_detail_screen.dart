@@ -106,7 +106,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: _buildCover(story),
+              background: Hero(
+                tag: 'story-cover-${story.storyId}',
+                child: _buildCover(story),
+              ),
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),

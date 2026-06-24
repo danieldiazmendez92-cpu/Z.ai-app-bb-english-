@@ -31,6 +31,8 @@ import '../../features/onboarding/presentation/screens/pick_age_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_avatar_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_interests_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
+import '../../features/parent/presentation/screens/parent_dashboard_screen.dart';
+import '../../features/parent/presentation/screens/parental_controls_screen.dart';
 import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/story/presentation/screens/reader_screen.dart';
 import '../../features/story/presentation/screens/story_detail_screen.dart';
@@ -259,8 +261,7 @@ final List<RouteBase> _routes = [
           GoRoute(
             path: AppRoutes.parent,
             name: AppRoutes.parentName,
-            builder: (context, state) =>
-                _placeholderScreen('Parent Dashboard'), // TODO(P2.Sprint 2.3): ParentDashboardScreen
+            builder: (context, state) => const ParentDashboardScreen(),
           ),
         ],
       ),
@@ -314,6 +315,13 @@ final List<RouteBase> _routes = [
     builder: (context, state) => EditChildScreen(
       childId: state.pathParameters['childId'],
     ),
+  ),
+
+  // ---- Parental controls ----
+  GoRoute(
+    path: AppRoutes.parentalControls,
+    name: AppRoutes.parentalControlsName,
+    builder: (context, state) => const ParentalControlsScreen(),
   ),
 
   // ---- Rutas legales (placeholder simple) ----
