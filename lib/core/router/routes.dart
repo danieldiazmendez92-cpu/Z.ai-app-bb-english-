@@ -25,6 +25,18 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String onboardingName = 'onboarding';
 
+  static const String onboardingWelcome = '/onboarding/welcome';
+  static const String onboardingWelcomeName = 'onboarding-welcome';
+
+  static const String onboardingAvatar = '/onboarding/avatar';
+  static const String onboardingAvatarName = 'onboarding-avatar';
+
+  static const String onboardingAge = '/onboarding/age';
+  static const String onboardingAgeName = 'onboarding-age';
+
+  static const String onboardingInterests = '/onboarding/interests';
+  static const String onboardingInterestsName = 'onboarding-interests';
+
   // ---- Main app (BottomNav) ----
   static const String home = '/';
   static const String homeName = 'home';
@@ -76,7 +88,12 @@ class AppRoutes {
   static String storyEndFor(String storyId) => '/story-end/$storyId';
 
   /// Construye path a edit child: `/edit-child/{childId}`.
+  ///
+  /// Para crear un hijo nuevo, pasar `'new'`: devuelve `/edit-child/new`.
   static String editChildFor(String childId) => '/edit-child/$childId';
+
+  /// Path al flow de crear hijo nuevo: `/edit-child/new`.
+  static String get editChildNew => '/edit-child/new';
 
   // ---- Rutas legales (placeholders hasta implementar) ----
   static const String terms = '/terms';

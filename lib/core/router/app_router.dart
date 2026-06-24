@@ -22,7 +22,14 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/parental_verification_screen.dart';
 import '../../features/auth/presentation/screens/password_reset_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/child_profile/presentation/screens/child_picker_screen.dart';
+import '../../features/child_profile/presentation/screens/edit_child_screen.dart';
+import '../../features/onboarding/presentation/screens/pick_age_screen.dart';
+import '../../features/onboarding/presentation/screens/pick_avatar_screen.dart';
+import '../../features/onboarding/presentation/screens/pick_interests_screen.dart';
+import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/providers/child_profile_provider.dart';
 import '../router/routes.dart';
 import '../utils/logger.dart';
 
@@ -39,6 +46,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshNotifier.notifyListeners();
   });
   ref.listen(isParentalVerifiedProvider, (_, __) {
+    refreshNotifier.notifyListeners();
+  });
+  // Reaccionar a cambios en la lista de hijos (para redirigir a
+  // onboarding si el usuario no tiene perfiles, o salir si crea uno).
+  ref.listen(hasAnyChildProvider, (_, __) {
     refreshNotifier.notifyListeners();
   });
 
@@ -61,6 +73,15 @@ const _publicRoutes = <String>{
   AppRoutes.passwordReset,
 };
 
+/// Rutas del flujo de onboarding. Requieren sesion + parental verificado.
+const _onboardingRoutes = <String>{
+  AppRoutes.onboarding,
+  AppRoutes.onboardingWelcome,
+  AppRoutes.onboardingAvatar,
+  AppRoutes.onboardingAge,
+  AppRoutes.onboardingInterests,
+};
+
 /// Redirect global. Reglas (en orden de prioridad):
 ///  1. Si estamos cargando la sesion inicial -> no redirige (esperar).
 ///  2. Si no hay sesion y la ruta actual NO es publica -> `/login`.
@@ -69,8 +90,12 @@ const _publicRoutes = <String>{
 ///  4. Si hay sesion, NO verifico parental, y no esta en parental-verification
 ///     -> `/parental-verification`.
 ///  5. Si hay sesion, verifico parental, y esta en parental-verification
-///     -> `/` (home).
-///  6. Caso contrario: no redirige.
+///     -> `/onboarding/welcome` (si no tiene hijos) o `/` (si tiene).
+///  6. Si verifico parental, no tiene hijos, y no esta en onboarding
+///     -> `/onboarding/welcome` (forzar onboarding).
+///  7. Si verifico parental, tiene hijos, y esta en onboarding
+///     -> `/` (salir del onboarding).
+///  8. Caso contrario: no redirige.
 String? _globalRedirect(
   BuildContext context,
   GoRouterState state,
@@ -79,6 +104,7 @@ String? _globalRedirect(
   final path = state.matchedLocation;
   final authAsync = ref.read(authControllerProvider);
   final isParentalVerified = ref.read(isParentalVerifiedProvider);
+  final hasAnyChild = ref.read(hasAnyChildProvider);
 
   AppLogger.debug('router redirect: $path');
 
@@ -103,6 +129,9 @@ String? _globalRedirect(
     if (!isParentalVerified) {
       return AppRoutes.parentalVerification;
     }
+    if (!hasAnyChild) {
+      return AppRoutes.onboardingWelcome;
+    }
     return AppRoutes.home;
   }
 
@@ -112,12 +141,25 @@ String? _globalRedirect(
   }
 
   // (5) Con sesion y parental verification: si esta en parental-verification,
-  // mandarlo a home.
+  // mandarlo a onboarding o home.
   if (isParentalVerified && path == AppRoutes.parentalVerification) {
+    if (!hasAnyChild) {
+      return AppRoutes.onboardingWelcome;
+    }
     return AppRoutes.home;
   }
 
-  // (6) Caso por defecto: no redirige.
+  // (6) Verifico parental, no tiene hijos, no esta en onboarding: forzar.
+  if (isParentalVerified && !hasAnyChild && !_onboardingRoutes.contains(path)) {
+    return AppRoutes.onboardingWelcome;
+  }
+
+  // (7) Verifico parental, tiene hijos, y esta en onboarding: salir.
+  if (isParentalVerified && hasAnyChild && _onboardingRoutes.contains(path)) {
+    return AppRoutes.home;
+  }
+
+  // (8) Caso por defecto: no redirige.
   return null;
 }
 
@@ -146,11 +188,31 @@ final List<RouteBase> _routes = [
   ),
 
   // ---- Onboarding ----
+  // Ruta `/onboarding` legacy: redirige a la primera pantalla del flujo.
   GoRoute(
     path: AppRoutes.onboarding,
     name: AppRoutes.onboardingName,
-    builder: (context, state) =>
-        _placeholderScreen('Onboarding'), // TODO(P1.Sprint 1.2): OnboardingFlow
+    redirect: (context, state) => AppRoutes.onboardingWelcome,
+  ),
+  GoRoute(
+    path: AppRoutes.onboardingWelcome,
+    name: AppRoutes.onboardingWelcomeName,
+    builder: (context, state) => const WelcomeScreen(),
+  ),
+  GoRoute(
+    path: AppRoutes.onboardingAvatar,
+    name: AppRoutes.onboardingAvatarName,
+    builder: (context, state) => const PickAvatarScreen(),
+  ),
+  GoRoute(
+    path: AppRoutes.onboardingAge,
+    name: AppRoutes.onboardingAgeName,
+    builder: (context, state) => const PickAgeScreen(),
+  ),
+  GoRoute(
+    path: AppRoutes.onboardingInterests,
+    name: AppRoutes.onboardingInterestsName,
+    builder: (context, state) => const PickInterestsScreen(),
   ),
 
   // ---- Main app con BottomNav (ShellRoute) ----
@@ -243,16 +305,14 @@ final List<RouteBase> _routes = [
   GoRoute(
     path: AppRoutes.childPicker,
     name: AppRoutes.childPickerName,
-    builder: (context, state) =>
-        _placeholderScreen('Child Picker'), // TODO(P1.Sprint 1.2): ChildPickerScreen
+    builder: (context, state) => const ChildPickerScreen(),
   ),
   GoRoute(
     path: AppRoutes.editChild,
     name: AppRoutes.editChildName,
-    builder: (context, state) => _placeholderScreen(
-      'Edit Child',
-      extra: state.pathParameters['childId'],
-    ), // TODO(P1.Sprint 1.2): EditChildScreen
+    builder: (context, state) => EditChildScreen(
+      childId: state.pathParameters['childId'],
+    ),
   ),
 
   // ---- Rutas legales (placeholder simple) ----
