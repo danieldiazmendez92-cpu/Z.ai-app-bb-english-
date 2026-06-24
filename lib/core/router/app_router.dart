@@ -2,83 +2,147 @@
 // app_router.dart - Configuracion de GoRouter
 // -----------------------------------------------------------------------------
 // Define el router de la app con:
-//  - Redirect global a login si no hay sesion.
-//  - Shell route con BottomNavigationBar para home/library/progress/parent.
-//  - Rutas push para story detail / reader / story end.
-//  - Rutas protegidas (parental verification antes de home).
+//  - Redirect global segun estado de auth (login / parental / onboarding).
+//  - Rutas de auth: `/login`, `/signup`, `/parental-verification`,
+//    `/password-reset`.
+//  - Shell route con BottomNavigationBar para home/library/progress/parent
+//    (placeholder hasta que se implemente en Sprints 1.4 / 2.2).
+//  - Rutas push para story detail / reader / story end (placeholder).
 //
-// Las screens se referencian como placeholders (TODO Fase 1: implementar).
+// El redirect observa `authControllerProvider` y `isParentalVerifiedProvider`.
+// Cuando el estado de auth cambia, `refreshListenable` re-ejecuta el redirect.
 // =============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/parental_verification_screen.dart';
+import '../../features/auth/presentation/screens/password_reset_screen.dart';
+import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../shared/providers/auth_provider.dart';
 import '../router/routes.dart';
 import '../utils/logger.dart';
 
 /// Provider de GoRouter.
 ///
 /// Usa `refreshListenable` para reaccionar a cambios de estado de auth.
-/// En Fase 1 se conectara al authControllerProvider.
+/// Cuando `authControllerProvider` cambia, se llama `notifyListeners()` y
+/// GoRouter re-ejecuta el redirect global.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // TODO(P1): conectar a authControllerProvider para redirigir en logout.
+  final refreshNotifier = _RiverpodRouterRefreshNotifier();
+
+  // Reaccionar a cambios de auth y parental verification.
+  ref.listen(authControllerProvider, (_, __) {
+    refreshNotifier.notifyListeners();
+  });
+  ref.listen(isParentalVerifiedProvider, (_, __) {
+    refreshNotifier.notifyListeners();
+  });
+
+  ref.onDispose(refreshNotifier.dispose);
+
   return GoRouter(
     initialLocation: AppRoutes.login,
     debugLogDiagnostics: true,
-    redirect: _globalRedirect,
+    refreshListenable: refreshNotifier,
+    redirect: (context, state) => _globalRedirect(context, state, ref),
     routes: _routes,
     errorBuilder: (context, state) => _errorScreen(state),
   );
 });
 
-/// Redirect global. Reglas (en orden):
-///  1. Si no hay usuario autenticado y la ruta requiere auth -> `/login`.
-///  2. Si hay usuario autenticado y esta en `/login` o `/signup` -> `/`.
-///  3. Si el usuario no completo parental verification -> `/parental-verification`.
-///  4. Si el usuario no completo onboarding -> `/onboarding`.
-///
-/// Por ahora (Fase 0 scaffold) no hace nada - todo se resuelve en Fase 1.
-Future<String?> _globalRedirect(
+/// Rutas publicas (auth flow): no requieren sesion.
+const _publicRoutes = <String>{
+  AppRoutes.login,
+  AppRoutes.signup,
+  AppRoutes.passwordReset,
+};
+
+/// Redirect global. Reglas (en orden de prioridad):
+///  1. Si estamos cargando la sesion inicial -> no redirige (esperar).
+///  2. Si no hay sesion y la ruta actual NO es publica -> `/login`.
+///  3. Si hay sesion y la ruta actual ES publica (login/signup/password-reset)
+///     -> `/parental-verification` (si no verifico) o `/` (si verifico).
+///  4. Si hay sesion, NO verifico parental, y no esta en parental-verification
+///     -> `/parental-verification`.
+///  5. Si hay sesion, verifico parental, y esta en parental-verification
+///     -> `/` (home).
+///  6. Caso contrario: no redirige.
+String? _globalRedirect(
   BuildContext context,
   GoRouterState state,
-) async {
+  Ref ref,
+) {
   final path = state.matchedLocation;
+  final authAsync = ref.read(authControllerProvider);
+  final isParentalVerified = ref.read(isParentalVerifiedProvider);
+
   AppLogger.debug('router redirect: $path');
 
-  // TODO(P1): implementar con authControllerProvider:
-  //   final authState = ref.read(authControllerProvider);
-  //   final isAuthenticated = authState.valueOrNull != null;
-  //   final isOnAuthFlow = path == AppRoutes.login ||
-  //                       path == AppRoutes.signup ||
-  //                       path == AppRoutes.parentalVerification;
-  //
-  //   if (!isAuthenticated && !isOnAuthFlow) return AppRoutes.login;
-  //   if (isAuthenticated && isOnAuthFlow) return AppRoutes.home;
-  //   if (isAuthenticated && !parentalVerified) return AppRoutes.parentalVerification;
-  //   if (isAuthenticated && !onboardingCompleted) return AppRoutes.onboarding;
+  // Mientras cargamos sesion inicial, no decidimos: dejamos al usuario en
+  // la ruta actual. La pantalla de splash / login muestra un loader.
+  if (authAsync.isLoading && !authAsync.hasValue) {
+    return null;
+  }
 
-  return null; // por ahora, no redirige
+  final user = authAsync.valueOrNull;
+
+  // (2) Sin sesion: solo se permiten rutas publicas.
+  if (user == null) {
+    if (_publicRoutes.contains(path)) {
+      return null; // ya esta en ruta publica
+    }
+    return AppRoutes.login;
+  }
+
+  // (3) Con sesion: no deberia estar en login/signup/password-reset.
+  if (_publicRoutes.contains(path)) {
+    if (!isParentalVerified) {
+      return AppRoutes.parentalVerification;
+    }
+    return AppRoutes.home;
+  }
+
+  // (4) Con sesion pero sin parental verification: forzar a la pantalla.
+  if (!isParentalVerified && path != AppRoutes.parentalVerification) {
+    return AppRoutes.parentalVerification;
+  }
+
+  // (5) Con sesion y parental verification: si esta en parental-verification,
+  // mandarlo a home.
+  if (isParentalVerified && path == AppRoutes.parentalVerification) {
+    return AppRoutes.home;
+  }
+
+  // (6) Caso por defecto: no redirige.
+  return null;
 }
 
 /// Lista de rutas de la app.
 final List<RouteBase> _routes = [
-  // ---- Auth ----
+  // ---- Auth flow ----
   GoRoute(
     path: AppRoutes.login,
     name: AppRoutes.loginName,
-    builder: (context, state) => _placeholderScreen('Login'), // TODO(P1): LoginScreen
+    builder: (context, state) => const LoginScreen(),
   ),
   GoRoute(
     path: AppRoutes.signup,
     name: AppRoutes.signupName,
-    builder: (context, state) => _placeholderScreen('Signup'), // TODO(P1): SignupScreen
+    builder: (context, state) => const SignupScreen(),
+  ),
+  GoRoute(
+    path: AppRoutes.passwordReset,
+    name: AppRoutes.passwordResetName,
+    builder: (context, state) => const PasswordResetScreen(),
   ),
   GoRoute(
     path: AppRoutes.parentalVerification,
     name: AppRoutes.parentalVerificationName,
-    builder: (context, state) =>
-        _placeholderScreen('Parental Verification'), // TODO(P1): ParentalVerificationScreen
+    builder: (context, state) => const ParentalVerificationScreen(),
   ),
 
   // ---- Onboarding ----
@@ -86,13 +150,13 @@ final List<RouteBase> _routes = [
     path: AppRoutes.onboarding,
     name: AppRoutes.onboardingName,
     builder: (context, state) =>
-        _placeholderScreen('Onboarding'), // TODO(P1): OnboardingFlow
+        _placeholderScreen('Onboarding'), // TODO(P1.Sprint 1.2): OnboardingFlow
   ),
 
   // ---- Main app con BottomNav (ShellRoute) ----
   StatefulShellRoute.indexedStack(
     builder: (context, state, navigationShell) =>
-        _placeholderScreen('Main (BottomNav)'), // TODO(P1): MainShellScreen
+        _placeholderScreen('Main (BottomNav)'), // TODO(P1.Sprint 1.4): MainShellScreen
     branches: [
       StatefulShellBranch(
         routes: [
@@ -100,7 +164,7 @@ final List<RouteBase> _routes = [
             path: AppRoutes.home,
             name: AppRoutes.homeName,
             builder: (context, state) =>
-                _placeholderScreen('Home'), // TODO(P1): HomeScreen
+                _placeholderScreen('Home'), // TODO(P1.Sprint 1.4): HomeScreen
           ),
         ],
       ),
@@ -110,7 +174,7 @@ final List<RouteBase> _routes = [
             path: AppRoutes.library,
             name: AppRoutes.libraryName,
             builder: (context, state) =>
-                _placeholderScreen('Library'), // TODO(P1): LibraryScreen
+                _placeholderScreen('Library'), // TODO(P1.Sprint 1.4): LibraryScreen
           ),
         ],
       ),
@@ -120,7 +184,7 @@ final List<RouteBase> _routes = [
             path: AppRoutes.progress,
             name: AppRoutes.progressName,
             builder: (context, state) =>
-                _placeholderScreen('Progress'), // TODO(P1): ProgressScreen
+                _placeholderScreen('Progress'), // TODO(P2.Sprint 2.1): ProgressScreen
           ),
         ],
       ),
@@ -130,7 +194,7 @@ final List<RouteBase> _routes = [
             path: AppRoutes.parent,
             name: AppRoutes.parentName,
             builder: (context, state) =>
-                _placeholderScreen('Parent Dashboard'), // TODO(P1): ParentDashboardScreen
+                _placeholderScreen('Parent Dashboard'), // TODO(P2.Sprint 2.3): ParentDashboardScreen
           ),
         ],
       ),
@@ -144,7 +208,7 @@ final List<RouteBase> _routes = [
     builder: (context, state) => _placeholderScreen(
       'Story Detail',
       extra: state.pathParameters['storyId'],
-    ), // TODO(P1): StoryDetailScreen
+    ), // TODO(P1.Sprint 1.4): StoryDetailScreen
   ),
   GoRoute(
     path: AppRoutes.reader,
@@ -152,7 +216,7 @@ final List<RouteBase> _routes = [
     builder: (context, state) => _placeholderScreen(
       'Reader',
       extra: state.pathParameters['storyId'],
-    ), // TODO(P1): ReaderScreen
+    ), // TODO(P1.Sprint 1.5): ReaderScreen
   ),
   GoRoute(
     path: AppRoutes.storyEnd,
@@ -160,7 +224,7 @@ final List<RouteBase> _routes = [
     builder: (context, state) => _placeholderScreen(
       'Story End',
       extra: state.pathParameters['storyId'],
-    ), // TODO(P1): StoryEndScreen
+    ), // TODO(P1.Sprint 1.5): StoryEndScreen
   ),
 
   // ---- Settings ----
@@ -180,7 +244,7 @@ final List<RouteBase> _routes = [
     path: AppRoutes.childPicker,
     name: AppRoutes.childPickerName,
     builder: (context, state) =>
-        _placeholderScreen('Child Picker'), // TODO(P1): ChildPickerScreen
+        _placeholderScreen('Child Picker'), // TODO(P1.Sprint 1.2): ChildPickerScreen
   ),
   GoRoute(
     path: AppRoutes.editChild,
@@ -188,7 +252,27 @@ final List<RouteBase> _routes = [
     builder: (context, state) => _placeholderScreen(
       'Edit Child',
       extra: state.pathParameters['childId'],
-    ), // TODO(P1): EditChildScreen
+    ), // TODO(P1.Sprint 1.2): EditChildScreen
+  ),
+
+  // ---- Rutas legales (placeholder simple) ----
+  GoRoute(
+    path: AppRoutes.terms,
+    name: 'terms',
+    builder: (context, state) => _legalScreen(
+      'Términos de Servicio',
+      'TBD - Documento completo a definir antes del lanzamiento público. '
+          'Mientras tanto, esta app es para uso de testing en desarrollo.',
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.privacy,
+    name: 'privacy',
+    builder: (context, state) => _legalScreen(
+      'Política de Privacidad',
+      'TBD - Documento completo a definir antes del lanzamiento público. '
+          'StoryEnglish Kids cumple con COPPA y GDPR-K. Ver docs/05-security-and-privacy.md',
+    ),
   ),
 ];
 
@@ -222,6 +306,18 @@ Widget _placeholderScreen(String title, {String? extra}) {
   );
 }
 
+/// Pantalla legal simple (Términos / Privacidad).
+/// Solo muestra un texto hasta que se definan los documentos legales finales.
+Widget _legalScreen(String title, String body) {
+  return Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Text(body, style: const TextStyle(fontSize: 16, height: 1.6)),
+    ),
+  );
+}
+
 /// Pantalla de error 404 de router.
 Widget _errorScreen(GoRouterState state) {
   return Scaffold(
@@ -232,9 +328,11 @@ Widget _errorScreen(GoRouterState state) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.sentiment_dissatisfied, size: 64, color: Colors.grey),
+            const Icon(Icons.sentiment_dissatisfied,
+                size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            const Text('404', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const Text('404',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text('Ruta no encontrada: ${state.matchedLocation}'),
           ],
@@ -242,4 +340,13 @@ Widget _errorScreen(GoRouterState state) {
       ),
     ),
   );
+}
+
+/// Listenable que llama `notifyListeners()` cuando Riverpod detecta un cambio
+/// en los providers observados. GoRouter escucha esto para re-evaluar
+/// `redirect`.
+class _RiverpodRouterRefreshNotifier extends ChangeNotifier {
+  void notifyListeners() {
+    super.notifyListeners();
+  }
 }

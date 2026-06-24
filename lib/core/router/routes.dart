@@ -18,6 +18,9 @@ class AppRoutes {
   static const String parentalVerification = '/parental-verification';
   static const String parentalVerificationName = 'parental-verification';
 
+  static const String passwordReset = '/password-reset';
+  static const String passwordResetName = 'password-reset';
+
   // ---- Onboarding ----
   static const String onboarding = '/onboarding';
   static const String onboardingName = 'onboarding';
@@ -74,4 +77,12 @@ class AppRoutes {
 
   /// Construye path a edit child: `/edit-child/{childId}`.
   static String editChildFor(String childId) => '/edit-child/$childId';
+
+  // ---- Rutas legales (placeholders hasta implementar) ----
+  static const String terms = '/terms';
+  static const String privacy = '/privacy';
 }
+
+/// Alias para uso más corto en las pantallas: `Routes.login` en lugar de
+/// `AppRoutes.login`.
+typedef Routes = AppRoutes;

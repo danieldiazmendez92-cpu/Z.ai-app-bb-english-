@@ -1,82 +1,82 @@
 // =============================================================================
-// auth_provider.dart - Provider stub de autenticacion
+// auth_provider.dart - Providers de autenticación (Riverpod)
 // -----------------------------------------------------------------------------
-// SKELETON: cuando se implemente la feature auth (Fase 1, sprint 1.1), este
-// provider se conectara a AuthRepository y expondra el estado de sesion.
+// Expone:
+//  - `authRepositoryProvider`: instancia singleton de `AuthRepositoryImpl`.
+//  - `authControllerProvider`: `StateNotifier<AsyncValue<AppUser?>>` con los
+//    métodos de login/signup/logout.
+//  - `authStateProvider`: `StreamProvider<AppUser?>` que escucha
+//    `authStateChanges()` (útil para reaccionar a logout en otro device).
+//  - `isParentalVerifiedProvider`: helper `bool` para el router.
+//  - `currentAppUserProvider`: helper que devuelve el `AppUser?` actual.
+//  - `parentalVerificationControllerProvider`: controller del flujo de
+//    verificación parental (math challenge).
 //
-// Por ahora define la "forma" que espera el router y el resto de la app.
+// El router (`app_router.dart`) observa `authControllerProvider` y
+// `isParentalVerifiedProvider` para decidir redirecciones.
 // =============================================================================
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/errors/failures.dart';
-import '../../core/utils/logger.dart';
+import 'package:storyenglish_kids/features/auth/data/auth_repository_impl.dart';
+import 'package:storyenglish_kids/features/auth/data/datasources/firebase_auth_datasource.dart';
+import 'package:storyenglish_kids/features/auth/domain/entities/app_user.dart';
+import 'package:storyenglish_kids/features/auth/domain/repositories/auth_repository.dart';
+import 'package:storyenglish_kids/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:storyenglish_kids/features/auth/presentation/controllers/parental_verification_controller.dart';
 
-/// Estado de autenticacion expuesto por [authControllerProvider].
+/// Provider singleton de [AuthRepository].
 ///
-/// SKELETON - reemplazar por AsyncValue<AppUser?> en Fase 1.
-class AuthState {
-  const AuthState({
-    this.isAuthenticated = false,
-    this.parentalVerified = false,
-    this.onboardingCompleted = false,
-    this.userUid,
-    this.failure,
-  });
+/// Inyecta [FirebaseAuthDatasource] (que envuelve `firebase_auth`,
+/// `cloud_firestore`, `google_sign_in`, `sign_in_with_apple`).
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(
+    datasource: FirebaseAuthDatasource(),
+  );
+});
 
-  final bool isAuthenticated;
-  final bool parentalVerified;
-  final bool onboardingCompleted;
-  final String? userUid;
-  final Failure? failure;
-
-  bool get requiresLogin => !isAuthenticated;
-  bool get requiresParentalVerification =>
-      isAuthenticated && !parentalVerified;
-  bool get requiresOnboarding =>
-      isAuthenticated && parentalVerified && !onboardingCompleted;
-
-  AuthState copyWith({
-    bool? isAuthenticated,
-    bool? parentalVerified,
-    bool? onboardingCompleted,
-    String? userUid,
-    Failure? failure,
-  }) {
-    return AuthState(
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      parentalVerified: parentalVerified ?? this.parentalVerified,
-      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
-      userUid: userUid ?? this.userUid,
-      failure: failure,
-    );
-  }
-}
-
-/// Provider de estado de autenticacion.
+/// Provider del [AuthController] (estado de sesión actual).
 ///
-/// SKELETON - en Fase 1 se reemplaza por:
-///   final authControllerProvider =
-///       StateNotifierProvider<AuthController, AsyncValue<AppUser?>>((ref) {
-///     return AuthController(authRepository: ref.watch(authRepositoryProvider));
-///   });
-final authControllerProvider = StateProvider<AuthState>((ref) {
-  AppLogger.debug('authControllerProvider: initialized as stub');
-  return const AuthState();
+/// El `state` es `AsyncValue<AppUser?>`:
+///  - `AsyncLoading` mientras carga la sesión inicial o procesa una acción.
+///  - `AsyncData<AppUser?>` cuando hay (o no hay) usuario.
+///  - `AsyncError<Failure>` si la última acción falló.
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AsyncValue<AppUser?>>((ref) {
+  return AuthController(
+    authRepository: ref.watch(authRepositoryProvider),
+  );
 });
 
-/// Provider que expone solo el flag booleano de autenticacion (conveniencia
-/// para uso en router redirect).
-final isAuthenticatedProvider = Provider<bool>((ref) {
-  return ref.watch(authControllerProvider).isAuthenticated;
+/// `StreamProvider` que escucha `authStateChanges()`.
+///
+/// Útil para reaccionar a cambios externos (logout en otro device, etc.).
+/// El `authControllerProvider` internamente ya escucha este stream, así que
+/// en la mayoría de los casos basta con observar `authControllerProvider`.
+final authStateProvider = StreamProvider<AppUser?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges();
 });
 
-/// Provider que expone si el usuario requiere parental verification.
-final requiresParentalVerificationProvider = Provider<bool>((ref) {
-  return ref.watch(authControllerProvider).requiresParentalVerification;
+/// `true` si el usuario completó verificación parental.
+final isParentalVerifiedProvider = Provider<bool>((ref) {
+  final user = ref.watch(authControllerProvider).valueOrNull;
+  return user?.parentalVerifiedAt != null;
 });
 
-/// Provider que expone si el usuario requiere onboarding.
-final requiresOnboardingProvider = Provider<bool>((ref) {
-  return ref.watch(authControllerProvider).requiresOnboarding;
+/// Devuelve el `AppUser?` actual (o `null` si loading / no hay sesión).
+final currentAppUserProvider = Provider<AppUser?>((ref) {
+  return ref.watch(authControllerProvider).valueOrNull;
+});
+
+/// Provider del [ParentalVerificationController].
+///
+/// Depende de `FirebaseFunctions` para llamar a la Cloud Function
+/// `verifyParental`.
+final parentalVerificationControllerProvider =
+    StateNotifierProvider<ParentalVerificationController,
+        ParentalVerificationState>((ref) {
+  return ParentalVerificationController(
+    functions: FirebaseFunctions.instance,
+  );
 });
