@@ -24,10 +24,16 @@ import '../../features/auth/presentation/screens/password_reset_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/child_profile/presentation/screens/child_picker_screen.dart';
 import '../../features/child_profile/presentation/screens/edit_child_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/home/presentation/screens/main_shell_screen.dart';
+import '../../features/library/presentation/screens/library_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_age_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_avatar_screen.dart';
 import '../../features/onboarding/presentation/screens/pick_interests_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
+import '../../features/story/presentation/screens/reader_screen.dart';
+import '../../features/story/presentation/screens/story_detail_screen.dart';
+import '../../features/story/presentation/screens/story_end_screen.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/child_profile_provider.dart';
 import '../router/routes.dart';
@@ -218,15 +224,14 @@ final List<RouteBase> _routes = [
   // ---- Main app con BottomNav (ShellRoute) ----
   StatefulShellRoute.indexedStack(
     builder: (context, state, navigationShell) =>
-        _placeholderScreen('Main (BottomNav)'), // TODO(P1.Sprint 1.4): MainShellScreen
+        MainShellScreen(navigationShell: navigationShell),
     branches: [
       StatefulShellBranch(
         routes: [
           GoRoute(
             path: AppRoutes.home,
             name: AppRoutes.homeName,
-            builder: (context, state) =>
-                _placeholderScreen('Home'), // TODO(P1.Sprint 1.4): HomeScreen
+            builder: (context, state) => const HomeScreen(),
           ),
         ],
       ),
@@ -235,8 +240,7 @@ final List<RouteBase> _routes = [
           GoRoute(
             path: AppRoutes.library,
             name: AppRoutes.libraryName,
-            builder: (context, state) =>
-                _placeholderScreen('Library'), // TODO(P1.Sprint 1.4): LibraryScreen
+            builder: (context, state) => const LibraryScreen(),
           ),
         ],
       ),
@@ -267,26 +271,23 @@ final List<RouteBase> _routes = [
   GoRoute(
     path: AppRoutes.storyDetail,
     name: AppRoutes.storyDetailName,
-    builder: (context, state) => _placeholderScreen(
-      'Story Detail',
-      extra: state.pathParameters['storyId'],
-    ), // TODO(P1.Sprint 1.4): StoryDetailScreen
+    builder: (context, state) => StoryDetailScreen(
+      storyId: state.pathParameters['storyId']!,
+    ),
   ),
   GoRoute(
     path: AppRoutes.reader,
     name: AppRoutes.readerName,
-    builder: (context, state) => _placeholderScreen(
-      'Reader',
-      extra: state.pathParameters['storyId'],
-    ), // TODO(P1.Sprint 1.5): ReaderScreen
+    builder: (context, state) => ReaderScreen(
+      storyId: state.pathParameters['storyId']!,
+    ),
   ),
   GoRoute(
     path: AppRoutes.storyEnd,
     name: AppRoutes.storyEndName,
-    builder: (context, state) => _placeholderScreen(
-      'Story End',
-      extra: state.pathParameters['storyId'],
-    ), // TODO(P1.Sprint 1.5): StoryEndScreen
+    builder: (context, state) => StoryEndScreen(
+      storyId: state.pathParameters['storyId']!,
+    ),
   ),
 
   // ---- Settings ----
