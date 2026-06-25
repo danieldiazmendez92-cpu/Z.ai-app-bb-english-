@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/routes.dart';
+import '../../../../shared/providers/child_profile_provider.dart';
+import '../../../vocabulary/presentation/controllers/vocabulary_review_controller.dart';
 import '../../domain/entities/story_section.dart';
 import '../../domain/entities/vocabulary_word.dart';
 import '../controllers/reader_controller.dart';
@@ -180,6 +182,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           setState(() {
                             _popupWord = vocab;
                           });
+                          // CORRECCIÓN PEDAGÓGICA: registrar palabra vista
+                          // en el sistema SRS para repaso espaciado.
+                          _recordWordSeen(vocab);
                         }
                       },
                     ),
@@ -264,6 +269,23 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         ),
       ),
     );
+  }
+
+  /// Registra que el niño vio una palabra de vocabulario (para SRS).
+  /// Se llama cuando se abre el VocabularyPopup.
+  void _recordWordSeen(VocabularyWord vocab) {
+    final activeChild = ref.read(activeChildProvider);
+    if (activeChild == null) return;
+
+    // Fire-and-forget: no bloqueamos la UI esperando el resultado.
+    ref.read(learnedWordsRepositoryProvider).recordWordSeen(
+          childId: activeChild.childId,
+          wordEn: vocab.wordEn,
+          wordEs: vocab.wordEs,
+          phonetic: vocab.phonetic,
+          exampleSentence: vocab.exampleSentence,
+          sourceStoryId: widget.storyId,
+        );
   }
 
   /// Encuentra los índices de las palabras del texto que son vocabulario.

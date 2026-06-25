@@ -106,6 +106,17 @@ class AppRoutes {
   // ---- Privacy ----
   static const String privacySettings = '/privacy-settings';
   static const String privacySettingsName = 'privacy-settings';
+
+  // ---- Vocabulary review (SRS) ----
+  static const String vocabularyReview = '/vocabulary-review';
+  static const String vocabularyReviewName = 'vocabulary-review';
+
+  // ---- Read to Me mode (under 4) ----
+  static const String readToMe = '/read-to-me/:storyId';
+  static const String readToMeName = 'read-to-me';
+
+  /// Construye path a Read to Me: `/read-to-me/{storyId}`.
+  static String readToMeFor(String storyId) => '/read-to-me/$storyId';
 }
 
 /// Alias para uso más corto en las pantallas: `Routes.login` en lugar de

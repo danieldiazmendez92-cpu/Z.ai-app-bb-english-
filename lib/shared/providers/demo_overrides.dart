@@ -22,6 +22,8 @@ import 'package:storyenglish_kids/features/subscription/data/demo_billing_reposi
 import 'package:storyenglish_kids/features/subscription/domain/repositories/billing_repository.dart';
 import 'package:storyenglish_kids/features/privacy/data/demo_privacy_repository.dart';
 import 'package:storyenglish_kids/features/privacy/domain/repositories/privacy_repository.dart';
+import 'package:storyenglish_kids/features/vocabulary/data/demo_learned_words_repository.dart';
+import 'package:storyenglish_kids/features/vocabulary/presentation/controllers/vocabulary_review_controller.dart';
 import 'package:storyenglish_kids/shared/providers/child_profile_provider.dart';
 
 /// Instancia singleton del DemoAuthRepository.
@@ -30,6 +32,10 @@ final _demoAuthRepository = DemoAuthRepository();
 /// Instancia singleton del DemoAchievementRepository.
 /// Exportada para que se pueda llamar `unlockDemoAchievement` desde tests.
 final demoAchievementRepository = DemoAchievementRepository();
+
+/// Instancia singleton del DemoLearnedWordsRepository.
+/// Pre-poblada con 10 palabras para que el repaso SRS tenga contenido.
+final demoLearnedWordsRepository = DemoLearnedWordsRepository()..prepopulateDemo('demo-child-001');
 
 /// Lista de overrides que reemplazan Firebase por implementaciones DEMO.
 ///
@@ -65,4 +71,7 @@ List<Override> get demoOverrides => [
 
       // Privacy
       privacyRepositoryProvider.overrideWithValue(DemoPrivacyRepository()),
+
+      // Vocabulary (SRS) - pre-poblado con 10 palabras
+      learnedWordsRepositoryProvider.overrideWithValue(demoLearnedWordsRepository),
     ];

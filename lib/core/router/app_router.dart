@@ -35,9 +35,11 @@ import '../../features/parent/presentation/screens/parent_dashboard_screen.dart'
 import '../../features/parent/presentation/screens/parental_controls_screen.dart';
 import '../../features/privacy/presentation/screens/privacy_settings_screen.dart';
 import '../../features/progress/presentation/screens/progress_screen.dart';
+import '../../features/story/presentation/screens/read_to_me_screen.dart';
 import '../../features/story/presentation/screens/reader_screen.dart';
 import '../../features/story/presentation/screens/story_detail_screen.dart';
 import '../../features/story/presentation/screens/story_end_screen.dart';
+import '../../features/vocabulary/presentation/screens/vocabulary_review_screen.dart';
 import '../../features/subscription/presentation/screens/manage_subscription_screen.dart';
 import '../../features/subscription/presentation/screens/paywall_screen.dart';
 import '../../shared/providers/auth_provider.dart';
@@ -330,6 +332,22 @@ final List<RouteBase> _routes = [
     path: AppRoutes.privacySettings,
     name: AppRoutes.privacySettingsName,
     builder: (context, state) => const PrivacySettingsScreen(),
+  ),
+
+  // ---- Vocabulary review (SRS) ----
+  GoRoute(
+    path: AppRoutes.vocabularyReview,
+    name: AppRoutes.vocabularyReviewName,
+    builder: (context, state) => const VocabularyReviewScreen(),
+  ),
+
+  // ---- Read to Me mode (under 4) ----
+  GoRoute(
+    path: AppRoutes.readToMe,
+    name: AppRoutes.readToMeName,
+    builder: (context, state) => ReadToMeScreen(
+      storyId: state.pathParameters['storyId']!,
+    ),
   ),
 
   // ---- Rutas legales (placeholder simple) ----

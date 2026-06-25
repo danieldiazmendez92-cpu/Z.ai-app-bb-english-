@@ -6,6 +6,7 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/widgets/se_error_widget.dart';
 import '../../../child_profile/presentation/controllers/child_profile_controller.dart';
 import '../../../story/domain/entities/story.dart';
+import '../../../vocabulary/presentation/controllers/vocabulary_review_controller.dart';
 import '../../presentation/controllers/home_controller.dart';
 import '../../../library/presentation/widgets/story_card.dart';
 
@@ -147,6 +148,10 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+
+              // Botón de repaso de vocabulario (SRS)
+              const SizedBox(height: 12),
+              _VocabularyReviewButton(),
             ],
           ),
         ),
@@ -273,6 +278,72 @@ class _ContinueReadingCard extends StatelessWidget {
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón que muestra cuántas palabras hay para repasar y navega al SRS.
+/// Solo se muestra si hay palabras due.
+class _VocabularyReviewButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, ref) {
+    final dueCount = ref.watch(dueWordsCountProvider).valueOrNull ?? 0;
+
+    if (dueCount == 0) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.tertiary ?? Theme.of(context).colorScheme.primary,
+            (Theme.of(context).colorScheme.tertiary ?? Theme.of(context).colorScheme.primary)
+                .withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push(Routes.vocabularyReview),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Text('🔤', style: TextStyle(fontSize: 32)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Repasar palabras',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '$dueCount palabra${dueCount == 1 ? '' : 's'} para repasar',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.9),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
