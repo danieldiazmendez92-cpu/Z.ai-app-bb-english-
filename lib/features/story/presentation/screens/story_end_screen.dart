@@ -29,6 +29,9 @@ class StoryEndScreen extends ConsumerStatefulWidget {
 class _StoryEndScreenState extends ConsumerState<StoryEndScreen> {
   int? _selectedAnswer;
   bool _answered = false;
+  // CORRECCIÓN PEDAGÓGICA: contador de intentos para permitir reintentos
+  int _attempts = 0;
+  static const int _maxAttempts = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +123,9 @@ class _StoryEndScreenState extends ConsumerState<StoryEndScreen> {
 
   Widget _buildComprehensionQuestion(
       BuildContext context, ComprehensionQuestion question) {
+    final isCorrect = _answered && _selectedAnswer == question.correctIndex;
+    final canRetry = _answered && !isCorrect && _attempts < _maxAttempts;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -162,28 +168,13 @@ class _StoryEndScreenState extends ConsumerState<StoryEndScreen> {
                 isWrong: _answered &&
                     _selectedAnswer == i &&
                     i != question.correctIndex,
-                onTap: _answered
+                onTap: (_answered && !canRetry)
                     ? null
                     : () => _selectAnswer(i, question),
               ),
             ),
-          if (_answered && _selectedAnswer != question.correctIndex) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                question.explanation,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-          if (_answered && _selectedAnswer == question.correctIndex) ...[
+
+          if (_answered && !isCorrect && !canRetry) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -193,12 +184,70 @@ class _StoryEndScreenState extends ConsumerState<StoryEndScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle,
+                  Icon(Icons.lightbulb_outline,
                       color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '¡Muy bien! Respondiste correctamente.',
+                      '¡Casi! La respuesta era: ${question.options[question.correctIndex]}. ${question.explanation}',
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (canRetry) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.refresh,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '¡Sigamos intentando! Podés volver a probar.',
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton.icon(
+                onPressed: _retry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Intentar de nuevo'),
+              ),
+            ),
+          ] else if (isCorrect) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.celebration,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '¡Muy bien! Respondiste correctamente. 🎉',
                       style: TextStyle(
                         color:
                             Theme.of(context).colorScheme.onPrimaryContainer,
@@ -218,10 +267,22 @@ class _StoryEndScreenState extends ConsumerState<StoryEndScreen> {
     setState(() {
       _selectedAnswer = index;
       _answered = true;
+      _attempts++;
+    });
+  }
+
+  void _retry() {
+    setState(() {
+      _selectedAnswer = null;
+      _answered = false;
     });
   }
 }
 
+/// Widget de opción de respuesta con feedback no punitivo.
+/// CORRECCIÓN PEDAGÓGICA:
+/// - Eliminado el color rojo y el icono de cancel (cruz roja)
+/// - Reemplazados por un tono suave (amarillo/naranja) + icono de "casi"
 class _AnswerOption extends StatelessWidget {
   const _AnswerOption({
     required this.text,
@@ -248,9 +309,10 @@ class _AnswerOption extends StatelessWidget {
       borderColor = Colors.green;
       textColor = Colors.green.shade700;
     } else if (isWrong) {
-      bgColor = Colors.red.withOpacity(0.1);
-      borderColor = Colors.red;
-      textColor = Colors.red.shade700;
+      // CORRECCIÓN: era Colors.red, ahora amarillo suave (no punitivo)
+      bgColor = Colors.amber.withOpacity(0.15);
+      borderColor = Colors.amber.shade600;
+      textColor = Colors.brown.shade700;
     } else if (isSelected) {
       bgColor = Theme.of(context).colorScheme.primary.withOpacity(0.1);
       borderColor = Theme.of(context).colorScheme.primary;
@@ -285,8 +347,9 @@ class _AnswerOption extends StatelessWidget {
             ),
             if (isCorrect)
               const Icon(Icons.check_circle, color: Colors.green)
+            // CORRECCIÓN: era Icons.cancel (cruz roja), ahora icono neutro
             else if (isWrong)
-              const Icon(Icons.cancel, color: Colors.red),
+              const Icon(Icons.help_outline, color: Colors.amber),
           ],
         ),
       ),

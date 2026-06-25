@@ -151,13 +151,24 @@ class AchievementRepositoryImpl implements AchievementRepository {
           .get();
       final achievementsUnlocked = achievementsSnap.docs.length;
 
-      // 4. Racha de días consecutivos
+      // 4. CORRECCIÓN PEDAGÓGICA: palabras aprendidas con medición REAL.
+      // Antes era `storiesCompleted * 8` (falso). Ahora contamos palabras
+      // efectivamente marcadas como "aprendidas" por el niño.
+      int wordsLearned = 0;
+      try {
+        final wordsSnap = await _firestore
+            .collection('learned_words')
+            .where('child_id', isEqualTo: childId)
+            .where('is_learned', isEqualTo: true)
+            .get();
+        wordsLearned = wordsSnap.docs.length;
+      } catch (_) {
+        wordsLearned = 0;
+      }
+
+      // 5. Racha de días consecutivos
       final activeDays = await getActiveDays(childId, days: 60);
       final (currentStreak, longestStreak) = _calculateStreaks(activeDays);
-
-      // 5. Palabras aprendidas (por ahora = vocabulario de cuentos completados)
-      // Para MVP: estimación simple basada en cuentos completados (~8 palabras/cuento)
-      final wordsLearned = storiesCompleted * 8;
 
       return ReadingStats(
         storiesCompleted: storiesCompleted,
