@@ -9,6 +9,7 @@ import '../../domain/entities/story_section.dart';
 import '../../domain/entities/vocabulary_word.dart';
 import '../controllers/reader_controller.dart';
 import '../widgets/highlighted_text.dart';
+import '../widgets/interactive_illustration.dart';
 import '../widgets/vocabulary_popup.dart';
 
 /// Pantalla de lectura del cuento.
@@ -137,36 +138,29 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Ilustración (si existe)
-                    if (section.illustrationUrl != null) ...[
-                      Center(
-                        child: Container(
-                          height: 200,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: section.illustrationUrl!.startsWith('http')
-                              ? Image.network(
-                                  section.illustrationUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.image, size: 64),
-                                )
-                              : Center(
-                                  child: Text(
-                                    section.illustrationUrl!,
-                                    style: const TextStyle(fontSize: 80),
-                                  ),
-                                ),
-                        ),
+                    // Ilustración interactiva con hotspots
+                    Center(
+                      child: InteractiveIllustration(
+                        storyId: widget.storyId,
+                        sectionOrder: section.order,
+                        size: 220,
+                        showHints: true,
+                        onWordTap: (word, translation) {
+                          // Mostrar popup con la palabra
+                          _showHotspotPopup(context, word, translation);
+                          // Reproducir palabra (TTS o audio pre-grabado)
+                          // En demo mode, mostramos snackbar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('🔊 $word = $translation'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 24),
-                    ],
+                    ),
+                    const SizedBox(height: 24),
 
                     // Texto en inglés con resaltado
                     HighlightedText(
@@ -267,6 +261,52 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Muestra un popup cuando el niño toca un hotspot en la ilustración.
+  void _showHotspotPopup(
+      BuildContext context, String word, String translation) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              word,
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              translation,
+              style: TextStyle(
+                fontSize: 24,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Icon(
+              Icons.volume_up,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('¡Entendido!'),
+          ),
+        ],
       ),
     );
   }

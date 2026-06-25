@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/routes.dart';
 import '../../../../core/widgets/se_button.dart';
+import '../../../offline/presentation/widgets/download_button.dart';
 import '../../domain/entities/story.dart';
 import '../../domain/entities/vocabulary_word.dart';
 import '../../domain/repositories/story_repository.dart';
@@ -115,6 +116,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => context.pop(),
             ),
+            actions: [
+              // Botón de descarga offline
+              DownloadButton(storyId: story.storyId),
+            ],
           ),
 
           SliverToBoxAdapter(
