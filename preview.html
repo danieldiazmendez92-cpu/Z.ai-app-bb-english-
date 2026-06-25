@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoryEnglish Kids — Preview</title>
+<style>
+  /* ============================================================
+     Reset + base
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #1a1a1a;
+  }
+
+  /* ============================================================
+     Phone frame
+     ============================================================ */
+  .phone {
+    width: 390px;
+    height: 800px;
+    background: #fafafa;
+    border-radius: 48px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 12px #1a1a1a, 0 0 0 14px #2a2a2a;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 30px;
+    background: #1a1a1a;
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+  }
+
+  /* ============================================================
+     Status bar (simulado)
+     ============================================================ */
+  .status-bar {
+    height: 44px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+    color: #1a1a1a;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-weight: 700; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+
+  /* ============================================================
+     Screen container
+     ============================================================ */
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    background: #fafafa;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen::-webkit-scrollbar { width: 4px; }
+  .screen::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+  .screen-content { padding: 0 20px 100px; }
+
+  /* ============================================================
+     Header (top app bar)
+     ============================================================ */
+  .app-bar {
+    padding: 8px 20px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .app-bar h1 { font-size: 22px; font-weight: 700; color: #4A90E2; }
+  .app-bar .actions { display: flex; gap: 8px; }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    color: #666;
+    font-size: 18px;
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: #f0f0f0; }
+
+  /* ============================================================
+     Colors / theme
+     ============================================================ */
+  :root {
+    --primary: #4A90E2;
+    --primary-light: #E3F2FD;
+    --primary-dark: #1976D2;
+    --accent: #FF9800;
+    --success: #4CAF50;
+    --warning: #FFC107;
+    --error: #F44336;
+    --surface: #FFFFFF;
+    --surface-variant: #F5F5F5;
+    --on-surface: #1a1a1a;
+    --on-surface-variant: #666;
+    --outline: #E0E0E0;
+    --radius: 16px;
+  }
+
+  /* ============================================================
+     Bottom navigation
+     ============================================================ */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border-top: 1px solid #E0E0E0;
+    display: flex;
+    padding: 8px 0 24px;
+    z-index: 50;
+  }
+  .nav-item {
+    flex: 1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #999;
+    font-size: 11px;
+    transition: color 0.2s;
+  }
+  .nav-item.active { color: var(--primary); }
+  .nav-item .icon { font-size: 22px; }
+  .nav-item .label { font-weight: 600; }
+
+  /* ============================================================
+     Components
+     ============================================================ */
+  .btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .btn:hover { box-shadow: 0 4px 12px rgba(74,144,226,0.4); }
+  .btn:active { transform: scale(0.98); }
+  .btn-secondary {
+    background: white;
+    color: #1a1a1a;
+    border: 2px solid var(--outline);
+  }
+  .btn-large { padding: 18px; font-size: 17px; }
+
+  .input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--outline);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: white;
+    transition: border-color 0.2s;
+  }
+  .input:focus { outline: none; border-color: var(--primary); }
+
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: var(--surface-variant);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--outline);
+  }
+  .chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 20px 0 12px;
+    color: #1a1a1a;
+  }
+
+  /* ============================================================
+     Story card
+     ============================================================ */
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .story-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .story-card:hover { transform: translateY(-2px); }
+  .story-cover {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);
+  }
+  .story-info { padding: 8px 10px; }
+  .story-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; line-height: 1.2; }
+  .story-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--on-surface-variant);
+  }
+
+  /* ============================================================
+     Highlighted text (reader)
+     ============================================================ */
+  .reader-text {
+    font-size: 22px;
+    line-height: 1.7;
+    color: #1a1a1a;
+  }
+  .reader-text .word {
+    display: inline;
+    transition: all 0.15s;
+    padding: 2px 1px;
+    border-radius: 4px;
+  }
+  .reader-text .word.current {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    padding: 2px 6px;
+  }
+  .reader-text .word.vocab {
+    color: #7B1FA2;
+    text-decoration: underline dotted;
+    cursor: pointer;
+  }
+
+  /* ============================================================
+     Achievement badges
+     ============================================================ */
+  .badge-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .badge {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 2px solid var(--outline);
+  }
+  .badge.unlocked {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .badge .emoji {
+    width: 50px;
+    height: 50px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 6px;
+  }
+  .badge.locked .emoji {
+    background: #E0E0E0;
+    color: #999;
+    font-size: 20px;
+  }
+  .badge .name { font-size: 10px; font-weight: 700; }
+  .badge .desc { font-size: 9px; color: #999; margin-top: 2px; }
+
+  /* ============================================================
+     Stats
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--outline);
+  }
+  .stat-card .icon { font-size: 24px; }
+  .stat-card .value { font-size: 22px; font-weight: 700; margin: 4px 0; }
+  .stat-card .label { font-size: 11px; color: var(--on-surface-variant); }
+
+  /* ============================================================
+     Audio controls
+     ============================================================ */
+  .audio-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 16px 20px 32px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+    z-index: 20;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #E0E0E0;
+    border-radius: 3px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .audio-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 8px;
+  }
+  .play-btn {
+    width: 64px;
+    height: 64px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+  }
+  .play-btn:hover { transform: scale(1.05); }
+
+  /* ============================================================
+     Progress header (level)
+     ============================================================ */
+  .level-header {
+    background: linear-gradient(135deg, var(--primary) 0%, #6ab7ff 100%);
+    border-radius: 20px;
+    padding: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .level-badge {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     Paywall plan selector
+     ============================================================ */
+  .plan-card {
+    border: 2px solid var(--outline);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .plan-card.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .plan-card .row { display: flex; align-items: center; gap: 12px; }
+  .plan-card .radio {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .plan-card.active .radio::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+  }
+  .plan-name { font-weight: 700; font-size: 16px; }
+  .plan-price { font-size: 13px; color: #666; }
+  .badge-discount {
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-left: 8px;
+  }
+
+  /* ============================================================
+     Hidden screens
+     ============================================================ */
+  .hidden { display: none !important; }
+
+  /* ============================================================
+     Help bar (top of page)
+     ============================================================ */
+  .help-bar {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: rgba(255,255,255,0.95);
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 13px;
+    color: #333;
+    max-width: 280px;
+    z-index: 1000;
+  }
+  .help-bar strong { color: var(--primary); }
+
+  /* ============================================================
+     Animations
+     ============================================================ */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.4s ease-out; }
+</style>
+</head>
+<body>
+
+<div class="help-bar">
+  <strong>📱 Preview interactivo</strong><br>
+  Tocá los botones del bottom nav, los cuentos, y los tabs para navegar. Es un preview estático del diseño.
+</div>
+
+<div class="phone">
+
+  <!-- ============================================================
+       SCREEN: HOME
+       ============================================================ -->
+  <div class="screen" id="screen-home">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+    <div class="app-bar">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 32px;">🦊</span>
+        <div>
+          <div style="font-size: 18px; font-weight: 700;">¡Hola, Sofi!</div>
+          <div style="font-size: 12px; color: #666;">4 años</div>
+        </div>
+      </div>
+      <button class="icon-btn">🔄</button>
+    </div>
+
+    <div class="screen-content">
+      <!-- Continue reading -->
+      <div class="section-title">Continuar leyendo</div>
+      <div style="display: flex; gap: 12px; overflow-x: auto;">
+        <div class="card" style="min-width: 220px; cursor: pointer;" onclick="goToReader()">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 32px;">🐷</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 13px;">The Three Little Pigs</div>
+            </div>
+          </div>
+          <div class="progress-bar" style="margin-top: 12px;">
+            <div class="progress-fill" style="width: 67%;"></div>
+          </div>
+          <div style="font-size: 11px; color: #666; margin-top: 4px;">67% completado</div>
+        </div>
+        <div class="card" style="min-width: 220px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 32px;">🐻</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 13px;">Goldilocks</div>
+            </div>
+          </div>
+          <div class="progress-bar" style="margin-top: 12px;">
+            <div class="progress-fill" style="width: 33%;"></div>
+          </div>
+          <div style="font-size: 11px; color: #666; margin-top: 4px;">33% completado</div>
+        </div>
+      </div>
+
+      <!-- Recommended -->
+      <div class="section-title">Recomendados para vos</div>
+      <div class="story-grid">
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);">👧</div>
+          <div class="story-info">
+            <div class="story-title">Little Red Riding Hood</div>
+            <div class="story-meta"><span>🎂 4-7 años</span><span>⏱ 5 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #C5E1A5 0%, #AED581 100%);">🐢</div>
+          <div class="story-info">
+            <div class="story-title">The Tortoise and the Hare</div>
+            <div class="story-meta"><span>🎂 2-6 años</span><span>⏱ 3 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);">🦆</div>
+          <div class="story-info">
+            <div class="story-title">The Ugly Duckling</div>
+            <div class="story-meta"><span>🎂 5-7 años</span><span>⏱ 6 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #F8BBD0 0%, #F48FB1 100%);">🐷</div>
+          <div class="story-info">
+            <div class="story-title">The Three Little Pigs</div>
+            <div class="story-meta"><span>🎂 3-7 años</span><span>⏱ 4 min</span></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" style="margin-top: 20px;" onclick="switchTab('library')">📚 Ver todos los cuentos</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: LIBRARY
+       ============================================================ -->
+  <div class="screen hidden" id="screen-library">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+    <div class="app-bar">
+      <h1>Biblioteca</h1>
+      <button class="icon-btn">⚙️</button>
+    </div>
+
+    <div class="screen-content">
+      <!-- Search -->
+      <input type="text" class="input" placeholder="🔍 Buscar cuentos..." style="margin-top: 12px;">
+
+      <!-- Category chips -->
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding: 16px 0; white-space: nowrap;">
+        <div class="chip active">📚 Todos</div>
+        <div class="chip">🐾 Animales</div>
+        <div class="chip">🚀 Aventuras</div>
+        <div class="chip">🌙 Hora de dormir</div>
+        <div class="chip">🧚 Cuentos de hadas</div>
+        <div class="chip">📖 Clásicos</div>
+      </div>
+
+      <!-- Story grid -->
+      <div class="story-grid">
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);">👧</div>
+          <div class="story-info">
+            <div class="story-title">Little Red Riding Hood</div>
+            <div class="story-meta"><span>🎂 4-7 años</span><span>⏱ 5 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #F8BBD0 0%, #F48FB1 100%);">🐷</div>
+          <div class="story-info">
+            <div class="story-title">The Three Little Pigs</div>
+            <div class="story-meta"><span>🎂 3-7 años</span><span>⏱ 4 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);">🐻</div>
+          <div class="story-info">
+            <div class="story-title">Goldilocks</div>
+            <div class="story-meta"><span>🎂 3-6 años</span><span>⏱ 4 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #C5E1A5 0%, #AED581 100%);">🦆</div>
+          <div class="story-info">
+            <div class="story-title">The Ugly Duckling</div>
+            <div class="story-meta"><span>🎂 5-7 años</span><span>⏱ 6 min</span></div>
+          </div>
+        </div>
+        <div class="story-card" onclick="goToStoryDetail()">
+          <div class="story-cover" style="background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);">🐢</div>
+          <div class="story-info">
+            <div class="story-title">The Tortoise and the Hare</div>
+            <div class="story-meta"><span>🎂 2-6 años</span><span>⏱ 3 min</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: STORY DETAIL
+       ============================================================ -->
+  <div class="screen hidden" id="screen-story-detail">
+    <div style="height: 280px; background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+      <span style="font-size: 120px;">👧</span>
+      <button class="icon-btn" style="position: absolute; top: 50px; left: 16px; background: rgba(255,255,255,0.9); color: #1a1a1a;" onclick="switchTab('home')">←</button>
+    </div>
+
+    <div class="screen-content" style="padding-top: 20px;">
+      <h1 style="font-size: 24px; font-weight: 700;">Little Red Riding Hood</h1>
+
+      <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+        <span class="chip" style="cursor: default;">🎂 4-7 años</span>
+        <span class="chip" style="cursor: default;">⏱ 5 min</span>
+        <span class="chip" style="cursor: default;">🇪🇸 ES</span>
+      </div>
+
+      <!-- Source -->
+      <div style="margin-top: 16px; padding: 12px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+        <span>🌐</span>
+        <span style="font-size: 13px; color: #666;">Fuente: Brothers Grimm, public domain</span>
+      </div>
+
+      <!-- Vocabulary -->
+      <div class="section-title">Palabras que vas a aprender</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span class="chip" style="background: #F3E5F5;">🌳 forest = bosque</span>
+        <span class="chip" style="background: #F3E5F5;">🐺 wolf = lobo</span>
+        <span class="chip" style="background: #F3E5F5;">👵 grandmother = abuela</span>
+        <span class="chip" style="background: #F3E5F5;">🧺 basket = canasta</span>
+      </div>
+
+      <button class="btn btn-large" style="margin-top: 24px;" onclick="goToReader()">▶ Empezar a leer</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: READER
+       ============================================================ -->
+  <div class="screen hidden" id="screen-reader">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+
+    <!-- Top bar with progress -->
+    <div style="padding: 8px 16px; display: flex; align-items: center; gap: 12px;">
+      <button class="icon-btn" onclick="switchTab('story-detail')">✕</button>
+      <div class="progress-bar" style="flex: 1; margin: 0;">
+        <div class="progress-fill" style="width: 34%;"></div>
+      </div>
+      <button class="icon-btn">👁</button>
+    </div>
+
+    <div class="screen-content" style="padding-bottom: 180px;">
+      <!-- Illustration -->
+      <div style="background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%); height: 180px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 20px;">
+        👧
+      </div>
+
+      <!-- Text with highlighted current word -->
+      <div class="reader-text">
+        Once upon a time, there was a little girl called Little Red Riding Hood. She lived with her mother in a small house near the <span class="word vocab">forest</span>. One day, her mother gave her a <span class="word vocab">basket</span> of food. "Take this to your <span class="word current">grandmother</span>," her mother said. "She is sick in bed."
+      </div>
+
+      <!-- Translation (toggleable, shown here as visible) -->
+      <div style="margin-top: 24px; padding: 16px; background: var(--surface-variant); border-radius: 16px;">
+        <div style="font-style: italic; line-height: 1.6; color: #555;">
+          Había una vez una niña llamada Caperucita Roja. Vivía con su madre en una pequeña casa cerca del bosque. Un día, su madre le dio una canasta con comida. "Lleva esto a tu abuela", dijo su madre. "Ella está enferma en cama."
+        </div>
+      </div>
+
+      <!-- Section navigation -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+        <button class="icon-btn">← Anterior</button>
+        <span style="color: #666; font-size: 13px;">1 / 3</span>
+        <button class="icon-btn">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Audio controls (fixed bottom) -->
+    <div class="audio-controls">
+      <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666;">
+        <span>1:23</span>
+        <span>4:15</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 34%;"></div>
+      </div>
+      <div class="audio-buttons">
+        <button class="icon-btn" style="font-size: 24px;">⏪</button>
+        <button class="play-btn" id="play-btn">⏸</button>
+        <button class="icon-btn" style="font-size: 24px;">⏩</button>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 6px; margin-top: 8px;">
+        <span class="chip" style="font-size: 11px; padding: 4px 10px;">0.75x</span>
+        <span class="chip active" style="font-size: 11px; padding: 4px 10px;">1x</span>
+        <span class="chip" style="font-size: 11px; padding: 4px 10px;">1.25x</span>
+        <span class="chip" style="font-size: 11px; padding: 4px 10px;">1.5x</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: PROGRESS
+       ============================================================ -->
+  <div class="screen hidden" id="screen-progress">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+    <div class="app-bar">
+      <h1>Mi progreso</h1>
+      <button class="icon-btn">🔄</button>
+    </div>
+
+    <div class="screen-content">
+      <!-- Level header -->
+      <div class="level-header">
+        <div class="level-badge">1</div>
+        <div style="flex: 1;">
+          <div style="font-size: 22px; font-weight: 700;">Nivel 1</div>
+          <div style="height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; margin-top: 8px; overflow: hidden;">
+            <div style="height: 100%; background: white; width: 40%; border-radius: 4px;"></div>
+          </div>
+          <div style="font-size: 11px; margin-top: 4px;">2 cuentos completados</div>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon">📖</div>
+          <div class="value">2</div>
+          <div class="label">Cuentos leídos</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">⏰</div>
+          <div class="value">8</div>
+          <div class="label">Minutos leídos</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">🔥</div>
+          <div class="value">1</div>
+          <div class="label">Días seguidos</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">📚</div>
+          <div class="value">16</div>
+          <div class="label">Palabras aprendidas</div>
+        </div>
+      </div>
+
+      <!-- Secondary stats -->
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <div class="stat-card" style="flex: 1;">
+          <div class="icon">🏆</div>
+          <div class="value">3</div>
+          <div class="label">Racha más larga</div>
+        </div>
+        <div class="stat-card" style="flex: 1;">
+          <div class="icon">🗺️</div>
+          <div class="value">2</div>
+          <div class="label">Categorías</div>
+        </div>
+        <div class="stat-card" style="flex: 1;">
+          <div class="icon">🎖️</div>
+          <div class="value">1</div>
+          <div class="label">Logros</div>
+        </div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="section-title">Mis insignias</div>
+      <div style="font-size: 13px; color: #666; margin-bottom: 12px;">1 de 8 desbloqueadas</div>
+
+      <div class="badge-grid">
+        <div class="badge unlocked">
+          <div class="emoji">👶</div>
+          <div class="name">First Steps</div>
+          <div class="desc">Primer cuento</div>
+        </div>
+        <div class="badge locked">
+          <div class="emoji">🔒</div>
+          <div class="name">Bookworm</div>
+          <div class="desc">5 cuentos</div>
+        </div>
+        <div class="badge locked">
+          <div class="emoji">🔒</div>
+          <div class="name">Explorer</div>
+          <div class="desc">10 cuentos</div>
+        </div>
+        <div class="badge locked">
+          <div class="emoji">🔒</div>
+          <div class="name">On Fire</div>
+          <div class="desc">3 días seguidos</div>
+        </div>
+        <div class="badge locked">
+          <div class="emoji">🔒</div>
+          <div class="name">Week Warrior</div>
+          <div class="desc">7 días seguidos</div>
+        </div>
+        <div class="badge locked">
+          <div class="emoji">🔒</div>
+          <div class="name">Word Collector</div>
+          <div class="desc">50 palabras</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: PARENT DASHBOARD
+       ============================================================ -->
+  <div class="screen hidden" id="screen-parent">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+    <div class="app-bar">
+      <h1>Panel de padres</h1>
+      <button class="icon-btn">⋮</button>
+    </div>
+
+    <div class="screen-content">
+      <!-- Weekly summary -->
+      <div style="background: linear-gradient(135deg, var(--primary) 0%, #6ab7ff 100%); border-radius: 20px; padding: 20px; color: white;">
+        <div style="display: flex; justify-content: space-around; text-align: center;">
+          <div>
+            <div style="font-size: 24px;">📖</div>
+            <div style="font-size: 26px; font-weight: 700;">2</div>
+            <div style="font-size: 11px;">Cuentos</div>
+          </div>
+          <div>
+            <div style="font-size: 24px;">⏰</div>
+            <div style="font-size: 26px; font-weight: 700;">8m</div>
+            <div style="font-size: 11px;">Minutos</div>
+          </div>
+          <div>
+            <div style="font-size: 24px;">🔥</div>
+            <div style="font-size: 26px; font-weight: 700;">1</div>
+            <div style="font-size: 11px;">Racha</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly chart -->
+      <div class="card" style="margin-top: 16px;">
+        <div style="font-weight: 700; margin-bottom: 16px;">Uso de esta semana</div>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 140px; gap: 8px;">
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 40px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">L</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 80px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">M</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: #E0E0E0; height: 8px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">X</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 60px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">J</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 100px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">V</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 50px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">S</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="background: var(--primary); height: 90px; border-radius: 4px 4px 0 0; margin-bottom: 4px;"></div>
+            <div style="font-size: 11px; color: #666;">D</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick access -->
+      <div class="card" style="margin-top: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px;" onclick="goToPaywall()">
+        <span style="font-size: 28px; color: var(--primary);">🛡️</span>
+        <div style="flex: 1;">
+          <div style="font-weight: 700;">Controles parentales</div>
+          <div style="font-size: 12px; color: #666;">Límite de tiempo, bedtime, categorías</div>
+        </div>
+        <span style="color: #999;">›</span>
+      </div>
+
+      <div class="card" style="margin-top: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px;" onclick="goToPaywall()">
+        <span style="font-size: 28px; color: var(--primary);">💳</span>
+        <div style="flex: 1;">
+          <div style="font-weight: 700;">Gestionar suscripción</div>
+          <div style="font-size: 12px; color: #666;">Plan, facturación, cancelar</div>
+        </div>
+        <span style="color: #999;">›</span>
+      </div>
+
+      <!-- COPPA note -->
+      <div style="margin-top: 16px; padding: 12px; background: var(--primary-light); border-radius: 12px; display: flex; gap: 8px; align-items: flex-start;">
+        <span>🔒</span>
+        <span style="font-size: 11px; color: #555;">Cumplimos con COPPA y GDPR-K. Tus datos y los de tu hijo están protegidos.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN: PAYWALL
+       ============================================================ -->
+  <div class="screen hidden" id="screen-paywall">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <span class="icons">📶 🔋</span>
+    </div>
+    <div class="app-bar">
+      <button class="icon-btn" onclick="switchTab('parent')">✕</button>
+    </div>
+
+    <div class="screen-content" style="text-align: center;">
+      <div style="font-size: 80px; margin: 16px 0;">📚</div>
+      <h1 style="color: var(--primary); font-size: 24px; margin-bottom: 8px;">StoryEnglish Premium</h1>
+      <p style="color: #666; font-size: 14px;">Desbloqueá todos los cuentos, audio en español, descargas offline y más.</p>
+
+      <!-- Benefits -->
+      <div style="text-align: left; margin-top: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+          <span style="font-size: 20px;">📚</span>
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Cuentos ilimitados</div>
+            <div style="font-size: 11px; color: #666;">Acceso a todo el catálogo</div>
+          </div>
+          <span style="color: var(--primary); margin-left: auto;">✓</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+          <span style="font-size: 20px;">🎧</span>
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Audio en español</div>
+            <div style="font-size: 11px; color: #666;">Narración premium en ambos idiomas</div>
+          </div>
+          <span style="color: var(--primary); margin-left: auto;">✓</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+          <span style="font-size: 20px;">💾</span>
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Descarga offline</div>
+            <div style="font-size: 11px; color: #666;">Hasta 50 cuentos sin conexión</div>
+          </div>
+          <span style="color: var(--primary); margin-left: auto;">✓</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 20px;">👨‍👩‍👧</span>
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">4 perfiles de niños</div>
+            <div style="font-size: 11px; color: #666;">Hasta 4 perfiles por cuenta</div>
+          </div>
+          <span style="color: var(--primary); margin-left: auto;">✓</span>
+        </div>
+      </div>
+
+      <!-- Plan selector -->
+      <div style="margin-top: 28px; text-align: left;">
+        <div class="plan-card active">
+          <div class="row">
+            <div class="radio"></div>
+            <div style="flex: 1;">
+              <div class="plan-name">Anual <span class="badge-discount">Ahorrá 33%</span></div>
+              <div class="plan-price">$39.99/año ($3.33/mes)</div>
+            </div>
+          </div>
+        </div>
+        <div class="plan-card">
+          <div class="row">
+            <div class="radio"></div>
+            <div style="flex: 1;">
+              <div class="plan-name">Mensual</div>
+              <div class="plan-price">$4.99/mes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial box -->
+      <div style="margin-top: 16px; padding: 14px; background: var(--primary-light); border-radius: 12px; display: flex; gap: 10px; align-items: center; text-align: left;">
+        <span style="font-size: 22px;">🎁</span>
+        <span style="font-size: 13px;">Empezás con <strong>7 días gratis</strong>. Podés cancelar cuando quieras antes de que termine.</span>
+      </div>
+
+      <button class="btn btn-large" style="margin-top: 20px;">🎁 Empezar 7 días gratis</button>
+
+      <div style="margin-top: 12px; font-size: 11px; color: #999;">
+        El cobro se realiza a través de Google Play o App Store.<br>
+        Se renueva automáticamente salvo que canceles.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Bottom navigation (visible on main screens)
+       ============================================================ -->
+  <div class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" data-screen="home" onclick="switchTab('home')">
+      <span class="icon">🏠</span>
+      <span class="label">Inicio</span>
+    </button>
+    <button class="nav-item" data-screen="library" onclick="switchTab('library')">
+      <span class="icon">📚</span>
+      <span class="label">Biblioteca</span>
+    </button>
+    <button class="nav-item" data-screen="progress" onclick="switchTab('progress')">
+      <span class="icon">⭐</span>
+      <span class="label">Progreso</span>
+    </button>
+    <button class="nav-item" data-screen="parent" onclick="switchTab('parent')">
+      <span class="icon">👨‍👩‍👧</span>
+      <span class="label">Padres</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // Tab switching
+  // ============================================================
+  const mainScreens = ['home', 'library', 'progress', 'parent'];
+  const allScreens = ['home', 'library', 'story-detail', 'reader', 'progress', 'parent', 'paywall'];
+
+  function switchTab(screen) {
+    // Hide all screens
+    allScreens.forEach(s => {
+      const el = document.getElementById('screen-' + s);
+      if (el) el.classList.add('hidden');
+    });
+
+    // Show target screen
+    const target = document.getElementById('screen-' + screen);
+    if (target) {
+      target.classList.remove('hidden');
+      target.scrollTop = 0;
+      target.classList.add('fade-in');
+      setTimeout(() => target.classList.remove('fade-in'), 400);
+    }
+
+    // Show/hide bottom nav
+    const bottomNav = document.getElementById('bottom-nav');
+    if (mainScreens.includes(screen)) {
+      bottomNav.style.display = 'flex';
+      // Update active state
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.screen === screen);
+      });
+    } else {
+      bottomNav.style.display = 'none';
+    }
+  }
+
+  function goToStoryDetail() { switchTab('story-detail'); }
+  function goToReader() { switchTab('reader'); }
+  function goToPaywall() { switchTab('paywall'); }
+
+  // ============================================================
+  // Play button toggle (just visual)
+  // ============================================================
+  document.getElementById('play-btn').addEventListener('click', function() {
+    this.textContent = this.textContent === '▶' ? '⏸' : '▶';
+  });
+
+  // ============================================================
+  // Auto-advance highlighted word in reader (demo)
+  // ============================================================
+  let wordIndex = 0;
+  let readerInterval = null;
+
+  function startReaderDemo() {
+    if (readerInterval) return;
+    readerInterval = setInterval(() => {
+      const reader = document.querySelector('#screen-reader .reader-text');
+      if (!reader) return;
+      const words = reader.querySelectorAll('.word');
+      if (words.length === 0) return;
+
+      // Remove current
+      words.forEach(w => {
+        if (!w.classList.contains('vocab')) w.classList.remove('current');
+      });
+
+      // Set next current (only non-vocab words)
+      const nonVocabWords = Array.from(words).filter(w => !w.classList.contains('vocab'));
+      if (nonVocabWords.length > 0) {
+        nonVocabWords[wordIndex % nonVocabWords.length].classList.add('current');
+        wordIndex++;
+      }
+    }, 1500);
+  }
+
+  // Start demo when reader is shown
+  const observer = new MutationObserver(() => {
+    const reader = document.getElementById('screen-reader');
+    if (reader && !reader.classList.contains('hidden')) {
+      startReaderDemo();
+    }
+  });
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
+</script>
+
+</body>
+</html>
