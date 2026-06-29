@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout (labeler config)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Label PR based on changed files
         uses: actions/labeler@v5
@@ -40,7 +40,7 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compute size and label
         uses: codelytv/pr-size-labeler@v1
         with:
